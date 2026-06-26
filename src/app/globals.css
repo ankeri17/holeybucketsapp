@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Fallback font stacks; real brand fonts can be wired up later. */
+  --font-display: "Poppins", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: theme("colors.brand.sand");
+  color: theme("colors.brand.ink");
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Big, thumb-friendly tap targets are a core product principle.
+   Use this as a baseline for interactive controls. */
+@layer components {
+  .tap-target {
+    @apply min-h-[56px] min-w-[56px] select-none active:scale-[0.98] transition-transform;
+  }
+}
