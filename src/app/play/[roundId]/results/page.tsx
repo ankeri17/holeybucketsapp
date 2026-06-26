@@ -98,7 +98,7 @@ export default function ResultsPage() {
 
       {/* Shareable branded image */}
       <section className="mt-6">
-        <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-brand-ink/60">
+        <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
           Share the win
         </h2>
         {shareUrl ? (
@@ -135,10 +135,10 @@ export default function ResultsPage() {
 
       {/* Standings */}
       <section className="mt-6">
-        <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-brand-ink/60">
+        <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
           Final standings
         </h2>
-        <ol className="space-y-2">
+        <ol className="space-y-2 tabular-nums">
           {board.map((row) => (
             <li
               key={row.playerId}
@@ -167,7 +167,7 @@ export default function ResultsPage() {
 
       {/* Full scorecard */}
       <section className="mt-6">
-        <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-brand-ink/60">
+        <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
           Scorecard
         </h2>
         <Scorecard round={round} course={course} />
@@ -203,7 +203,7 @@ export default function ResultsPage() {
 function Scorecard({ round, course }: { round: Round; course: Course }) {
   return (
     <div className="overflow-x-auto rounded-2xl ring-1 ring-brand-ink/5">
-      <table className="w-full border-collapse bg-white text-sm">
+      <table className="w-full border-collapse bg-white text-sm tabular-nums">
         <thead>
           <tr className="bg-brand-ink/5 text-brand-ink/70">
             <th className="px-2 py-2 text-left font-bold">Hole</th>

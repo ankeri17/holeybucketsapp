@@ -14,8 +14,10 @@ const config: Config = {
         brand: brand.colors,
       },
       fontFamily: {
-        display: ["var(--font-display)", "system-ui", "sans-serif"],
-        body: ["var(--font-body)", "system-ui", "sans-serif"],
+        // Display — Bricolage Grotesque; Text/UI — Figtree (both via next/font).
+        display: ["var(--font-display)", "Bricolage Grotesque", "system-ui", "sans-serif"],
+        body: ["var(--font-text)", "Figtree", "system-ui", "sans-serif"],
+        sans: ["var(--font-text)", "Figtree", "system-ui", "sans-serif"],
       },
     },
   },

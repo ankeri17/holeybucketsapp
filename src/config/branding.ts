@@ -18,7 +18,7 @@ export const brand = {
   name: "Holey Buckets",
 
   /** A short, punny line under the name. Keep it playful. */
-  tagline: "Bucket golf, officially scored.",
+  tagline: "Backyard golf for everyone.",
 
   /**
    * The umbrella brand / parent company behind the product. This is shown only

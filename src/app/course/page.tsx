@@ -38,7 +38,7 @@ export default function CoursePage() {
         </div>
       </header>
 
-      <ol className="space-y-3">
+      <ol className="space-y-3 tabular-nums">
         {course.holes.map((hole) => (
           <li
             key={hole.number}
@@ -89,7 +89,7 @@ export default function CoursePage() {
 function Stat({ value, label }: { value: number; label: string }) {
   return (
     <div className="rounded-xl bg-brand-sunshine/30 px-4 py-2 text-center">
-      <div className="text-xl font-extrabold leading-none text-brand-ink">
+      <div className="text-xl font-extrabold leading-none text-brand-ink tabular-nums">
         {value}
       </div>
       <div className="text-xs font-semibold uppercase tracking-wide text-brand-ink/60">
