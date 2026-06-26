@@ -1,6 +1,6 @@
 import type { Course, Round } from "./types";
 import type { Standing } from "./scoring";
-import { formatToPar } from "./scoring";
+import { formatToPar, winners, joinNames } from "./scoring";
 import { brand } from "@/config/branding";
 
 /**
@@ -64,15 +64,18 @@ export function buildShareImage(
   );
   text(monthYear, 495, "28px system-ui, sans-serif", c.stone);
 
-  // Winner
-  const winner = board[0];
-  if (winner) {
+  // Winner (or tie)
+  const top = winners(board);
+  const best = top[0];
+  if (best) {
+    const tie = top.length > 1;
     ctx.fillStyle = c.sunshine;
     roundedRect(ctx, 140, 535, SIZE - 280, 125, 28);
     ctx.fill();
-    text("WINNER", 583, "bold 30px system-ui, sans-serif", c.ink);
+    text(tie ? "TIE" : "WINNER", 583, "bold 30px system-ui, sans-serif", c.ink);
+    const names = joinNames(top.map((w) => w.name));
     text(
-      `${winner.name} · ${winner.total} (${formatToPar(winner.toPar)})`,
+      `${names} · ${best.total} (${formatToPar(best.toPar)})`,
       631,
       "bold 46px system-ui, sans-serif",
       c.ink,

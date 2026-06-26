@@ -10,6 +10,8 @@ import {
   formatToPar,
   playerBalls,
   totalBalls,
+  winners,
+  joinNames,
 } from "@/lib/scoring";
 import { buildShareImage, shareImage, downloadImage } from "@/lib/shareImage";
 import { downloadResultsScorecard } from "@/lib/pdf";
@@ -79,21 +81,26 @@ export default function ResultsPage() {
     );
   }
 
-  const winner = board[0];
+  const top = winners(board);
+  const isTie = top.length > 1;
+  const best = top[0];
 
   return (
     <main className="mx-auto min-h-screen max-w-md px-5 pb-16 pt-6">
-      {/* Winner hero */}
+      {/* Winner hero (or tie) */}
       <div className="rounded-2xl bg-brand-primary px-5 py-8 text-center text-white">
         <p className="text-sm font-semibold uppercase tracking-wide opacity-80">
           {round.groupName} · final
         </p>
         <BucketLogo className="mx-auto mt-2 h-16 w-16" />
         <h1 className="mt-2 font-display text-3xl font-extrabold">
-          {winner.name} wins!
+          {isTie
+            ? `It's a tie!`
+            : `${best.name} wins!`}
         </h1>
         <p className="mt-1 opacity-90">
-          {winner.total} strokes · {formatToPar(winner.toPar)}
+          {isTie ? `${joinNames(top.map((w) => w.name))} · ` : ""}
+          {best.total} strokes · {formatToPar(best.toPar)}
         </p>
       </div>
 

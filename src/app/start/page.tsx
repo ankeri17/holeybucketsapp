@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { defaultCourse } from "@/config/courses";
 import { FORMATS, DEFAULT_FORMAT } from "@/lib/formats";
 import { createRound } from "@/lib/round";
+import { PrintBlankButton } from "@/components/PrintBlankButton";
 import { saveRound, setActiveRoundId } from "@/lib/storage";
 import type { ScoringFormat } from "@/lib/types";
 
@@ -161,6 +162,14 @@ export default function StartPage() {
             .join(", ")}
           .
         </p>
+      </div>
+
+      {/* Prefer paper? Print a blank scorecard to fill in by hand. */}
+      <div className="mt-6">
+        <p className="mb-2 text-sm text-brand-stone">
+          Prefer pen and paper?
+        </p>
+        <PrintBlankButton course={course} />
       </div>
 
       {/* Sticky start button */}

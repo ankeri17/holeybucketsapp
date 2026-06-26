@@ -52,8 +52,17 @@ function scorecardSkeleton(course: Course) {
   return { front, back, head, parRow };
 }
 
+/** Format a date the friendly way, e.g. "June 26, 2026". */
+function formatDate(d: Date): string {
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 /** Draw the branded header band; returns the Y to start the table at. */
-function drawHeader(doc: any, course: Course, subtitle: string): number {
+function drawHeader(doc: any, course: Course, subtitle: string, dateStr: string): number {
   const pageW = doc.internal.pageSize.getWidth();
   doc.setFillColor(...hexToRgb(brand.colors.primary));
   doc.rect(0, 0, pageW, 70, "F");
@@ -71,6 +80,12 @@ function drawHeader(doc: any, course: Course, subtitle: string): number {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
   doc.text(subtitle, 40, 96);
+
+  // Date, right-aligned on the subtitle row.
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(...hexToRgb(brand.colors.stone));
+  doc.text(dateStr, pageW - 40, 96, { align: "right" });
 
   return 110;
 }
@@ -105,7 +120,12 @@ function renderTable(doc: any, autoTable: any, head: string[], body: (string | n
 /** Blank scorecard to print and fill in by hand before a round. */
 export async function downloadBlankScorecard(course: Course): Promise<void> {
   const { doc, autoTable } = await newDoc();
-  const startY = drawHeader(doc, course, "Blank scorecard — fill in by hand");
+  const startY = drawHeader(
+    doc,
+    course,
+    "Blank scorecard — fill in by hand",
+    formatDate(new Date()),
+  );
   const { head, parRow } = scorecardSkeleton(course);
 
   const blankRow = ["", ...head.slice(1).map(() => "")];
@@ -121,7 +141,12 @@ export async function downloadBlankScorecard(course: Course): Promise<void> {
 /** Completed scorecard from a finished round. */
 export async function downloadResultsScorecard(round: Round, course: Course): Promise<void> {
   const { doc, autoTable } = await newDoc();
-  const startY = drawHeader(doc, course, round.groupName);
+  const startY = drawHeader(
+    doc,
+    course,
+    round.groupName,
+    formatDate(new Date(round.createdAt)),
+  );
   const { front, back, head, parRow } = scorecardSkeleton(course);
 
   const playerRows = round.players.map((p) => {
