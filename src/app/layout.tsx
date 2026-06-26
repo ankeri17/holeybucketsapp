@@ -15,13 +15,29 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
+// Publish the brand palette as CSS custom properties, derived from the one
+// config file (src/config/branding.ts) so tokens and Tailwind never drift.
+const c = brand.colors;
+const cssTokens = {
+  "--fairway-green": c.primary,
+  "--deep-pine": c.deepPine,
+  "--sunshine": c.sunshine,
+  "--bucket-blue": c.bucketBlue,
+  "--canvas-cream": c.cream,
+  "--card-white": c.card,
+  "--ink": c.ink,
+  "--stone": c.stone,
+  "--line": c.line,
+  "--penalty-clay": c.penalty,
+} as React.CSSProperties;
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" style={cssTokens}>
       <body className="font-body antialiased">{children}</body>
     </html>
   );

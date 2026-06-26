@@ -14,7 +14,7 @@ body {
 }
 
 body {
-  background-color: theme("colors.brand.sand");
+  background-color: theme("colors.brand.cream");
   color: theme("colors.brand.ink");
   -webkit-tap-highlight-color: transparent;
 }
