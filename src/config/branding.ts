@@ -20,8 +20,20 @@ export const brand = {
   /** A short, punny line under the name. Keep it playful. */
   tagline: "Bucket golf, officially scored.",
 
-  /** The parent brand that stands behind the product. */
-  parentBrand: "Hello Again Properties",
+  /**
+   * The umbrella brand / parent company behind the product. This is shown only
+   * as a small credit (see `umbrellaCredit` below) — it is NOT the identity
+   * players see throughout the app; that's always "Holey Buckets".
+   *
+   * Note: the *host* of a given location (e.g. Hello Again Properties at
+   * Osceola) is NOT set here — a host belongs to its course, in the course
+   * data (see src/config/courses/), because every course can have a different
+   * host.
+   */
+  umbrellaBrand: "Four Irons",
+
+  /** The exact small credit line shown in the footer / about. */
+  umbrellaCredit: "A Four Irons Game",
 
   /**
    * The colors used throughout the app. These are deliberately bold, bright,
