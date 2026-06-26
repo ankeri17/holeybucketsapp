@@ -50,50 +50,55 @@ export function buildShareImage(
   drawBucketMark(ctx, center, 110);
   text(brand.name.toUpperCase(), 250, "bold 72px system-ui, sans-serif", "#ffffff");
 
-  // Headline. The brand is already huge above, so the subline is just the
-  // place — avoids doubling up when a course name contains the brand.
-  text("We played Holey Buckets!", 420, "bold 52px system-ui, sans-serif", c.ink);
-  text(`at ${course.location}`, 478, "34px system-ui, sans-serif", c.stone);
+  // Headline + a specific brag: course, place, and month so it's a real moment.
+  const monthYear = new Date(round.createdAt).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+  text("We played Holey Buckets!", 405, "bold 52px system-ui, sans-serif", c.ink);
+  text(
+    `${course.name} · ${course.location}`,
+    455,
+    "bold 32px system-ui, sans-serif",
+    c.ink,
+  );
+  text(monthYear, 495, "28px system-ui, sans-serif", c.stone);
 
   // Winner
   const winner = board[0];
   if (winner) {
     ctx.fillStyle = c.sunshine;
-    roundedRect(ctx, 140, 540, SIZE - 280, 130, 28);
+    roundedRect(ctx, 140, 535, SIZE - 280, 125, 28);
     ctx.fill();
-    text("WINNER", 590, "bold 30px system-ui, sans-serif", c.ink);
+    text("WINNER", 583, "bold 30px system-ui, sans-serif", c.ink);
     text(
       `${winner.name} · ${winner.total} (${formatToPar(winner.toPar)})`,
-      640,
+      631,
       "bold 46px system-ui, sans-serif",
       c.ink,
     );
   }
 
   // Standings (top 5)
-  let y = 760;
+  let y = 735;
   board.slice(0, 5).forEach((row) => {
-    text(`${row.rank}.  ${row.name}`, y, "40px system-ui, sans-serif", c.ink, "left", 160);
+    text(`${row.rank}.  ${row.name}`, y, "38px system-ui, sans-serif", c.ink, "left", 160);
     text(
       `${row.total}  ${formatToPar(row.toPar)}`,
       y,
-      "bold 40px system-ui, sans-serif",
+      "bold 38px system-ui, sans-serif",
       c.ink,
       "right",
       SIZE - 160,
     );
-    y += 58;
+    y += 50;
   });
 
-  // Footer credit
-  text(round.groupName, SIZE - 70, "30px system-ui, sans-serif", c.ink, "center");
-  text(
-    brand.umbrellaCredit,
-    SIZE - 30,
-    "bold 26px system-ui, sans-serif",
-    c.primary,
-    "center",
-  );
+  // Footer: group name, the umbrella credit, and the site URL (free acquisition
+  // — anyone who sees the card knows where to play).
+  text(round.groupName, 988, "28px system-ui, sans-serif", c.stone, "center");
+  text(brand.umbrellaCredit, 1024, "bold 26px system-ui, sans-serif", c.primary, "center");
+  text(brand.siteUrl, 1058, "bold 26px system-ui, sans-serif", c.bucketBlue, "center");
 
   return new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
 }

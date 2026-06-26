@@ -36,6 +36,13 @@ export const brand = {
   umbrellaCredit: "A Four Irons Game",
 
   /**
+   * The site address shown on the shareable result card, so every shared
+   * brag points new players to where they can play. Shown without "https://".
+   * Repoint this to the real domain once it's live.
+   */
+  siteUrl: "holeybuckets.netlify.app",
+
+  /**
    * The official Holey Buckets color palette — the design tokens the whole app
    * themes from. Swap the hex values here to rebrand; every screen, the
    * leaderboard colors, and the shareable image all follow this one file.
