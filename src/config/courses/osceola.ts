@@ -27,9 +27,12 @@ import type { Course } from "@/lib/types";
  */
 export const osceola: Course = {
   id: "osceola",
-  name: "Holey Buckets at Osceola",
+  name: "The Gray Duck", // the real course name (shown to players, not "Holey Buckets at Osceola")
+  code: "grayduck", // short code for "enter a course code" / QR join later
   location: "Osceola, WI",
   host: "Hello Again Properties", // the host of this location (per-course, not a global brand)
+  isPublic: true, // the flagship is publicly listed
+  trackBalls: true, // The Gray Duck charges per ball, so tally balls used/lost
   holes: [
     { number: 1, name: "The Warm-Up", distancePaces: 12, difficultyRank: 14, note: "Gentle opener — find your swing." },
     { number: 2, name: "Deck Party", distancePaces: 16, hazards: "Out of bounds left past the deck", difficultyRank: 9 },

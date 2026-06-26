@@ -48,6 +48,8 @@ export interface Hole {
   teeLocation?: string;
   /** Optional tip or note shown to players. */
   note?: string;
+  /** Optional tee photo URL for this hole (from the owner worksheet). */
+  teePhoto?: string;
 }
 
 /** A playable course: just a name, a location, and an ordered list of holes. */
@@ -64,6 +66,25 @@ export interface Course {
    * every course can carry its own host.
    */
   host?: string;
+  /**
+   * Short, human-enterable code / slug for this course, e.g. "grayduck".
+   * Lowercase, no spaces. Used for "enter a course code" and QR join later.
+   * Cheap to add now; painful to retrofit once courses exist.
+   */
+  code?: string;
+  /**
+   * Whether this course is publicly listed / searchable. The flagship is
+   * public; owner-created courses default to private (Phase 2).
+   */
+  isPublic?: boolean;
+  /**
+   * Whether this venue tracks balls used/lost (for per-ball billing). A
+   * course-level setting, multi-tenant like everything else: on for the
+   * flagship, off by default for other courses. Kept out of the score.
+   */
+  trackBalls?: boolean;
+  /** Optional hero image URL for the course page (from the owner worksheet). */
+  heroImage?: string;
   /** The holes, in play order. */
   holes: Hole[];
 }

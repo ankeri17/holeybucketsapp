@@ -39,7 +39,7 @@ export default function Home() {
             href="/course"
             className="tap-target flex w-full items-center justify-center rounded-2xl border-2 border-brand-line bg-brand-card px-6 font-bold text-brand-deepPine active:bg-brand-cream"
           >
-            See the {defaultCourse.location} course →
+            See {defaultCourse.name} →
           </Link>
         </div>
 
