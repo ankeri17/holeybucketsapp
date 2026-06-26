@@ -70,7 +70,7 @@ terminal to deploy:
 1. ✅ Scaffold + deploy a near-empty app to Netlify.
 2. ✅ Course data model + placeholder Osceola course from config (view at `/course`).
 3. ✅ Start-a-round flow (group name, add players, pick format).
-4. ⬜ Scoring screen (big +/−, bucket-chip toggle, live totals).
+4. ✅ Scoring screen (big +/−, bucket-chip toggle, foliage penalty, live totals).
 5. ⬜ Leaderboard + results + shareable branded image.
 6. ⬜ PDF scorecard generator (blank + completed round).
 7. ⬜ Email capture + booking link + brand polish.
