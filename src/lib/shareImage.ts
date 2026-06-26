@@ -41,31 +41,27 @@ export function buildShareImage(
   };
 
   // Background
-  ctx.fillStyle = c.sand;
+  ctx.fillStyle = c.cream;
   ctx.fillRect(0, 0, SIZE, SIZE);
 
   // Header band
   ctx.fillStyle = c.primary;
   ctx.fillRect(0, 0, SIZE, 300);
-  text("🪣", 150, "120px system-ui, sans-serif", "#ffffff");
-  text(brand.name.toUpperCase(), 245, "bold 72px system-ui, sans-serif", "#ffffff");
+  drawBucketMark(ctx, center, 110);
+  text(brand.name.toUpperCase(), 250, "bold 72px system-ui, sans-serif", "#ffffff");
 
-  // Headline
+  // Headline. The brand is already huge above, so the subline is just the
+  // place — avoids doubling up when a course name contains the brand.
   text("We played Holey Buckets!", 420, "bold 52px system-ui, sans-serif", c.ink);
-  text(
-    `at ${course.name} · ${course.location}`,
-    478,
-    "34px system-ui, sans-serif",
-    c.ink,
-  );
+  text(`at ${course.location}`, 478, "34px system-ui, sans-serif", c.stone);
 
   // Winner
   const winner = board[0];
   if (winner) {
-    ctx.fillStyle = c.accent;
+    ctx.fillStyle = c.sunshine;
     roundedRect(ctx, 140, 540, SIZE - 280, 130, 28);
     ctx.fill();
-    text("🏆 WINNER", 590, "bold 30px system-ui, sans-serif", c.ink);
+    text("WINNER", 590, "bold 30px system-ui, sans-serif", c.ink);
     text(
       `${winner.name} · ${winner.total} (${formatToPar(winner.toPar)})`,
       640,
@@ -100,6 +96,48 @@ export function buildShareImage(
   );
 
   return new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
+}
+
+/** The Holey Buckets logo mark drawn on canvas (white, for the green header). */
+function drawBucketMark(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+): void {
+  const c = brand.colors;
+
+  // Ball trajectory arc
+  ctx.strokeStyle = c.sunshine;
+  ctx.lineWidth = 7;
+  ctx.lineCap = "round";
+  ctx.setLineDash([2, 18]);
+  ctx.beginPath();
+  ctx.moveTo(cx - 78, cy + 20);
+  ctx.quadraticCurveTo(cx - 10, cy - 80, cx + 56, cy - 56);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Ball
+  ctx.fillStyle = c.sunshine;
+  ctx.beginPath();
+  ctx.arc(cx + 60, cy - 56, 14, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Bucket body
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.moveTo(cx - 56, cy - 22);
+  ctx.lineTo(cx + 56, cy - 22);
+  ctx.lineTo(cx + 40, cy + 70);
+  ctx.quadraticCurveTo(cx, cy + 84, cx - 40, cy + 70);
+  ctx.closePath();
+  ctx.fill();
+
+  // Bucket rim
+  ctx.fillStyle = c.deepPine;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy - 22, 56, 14, 0, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 function roundedRect(

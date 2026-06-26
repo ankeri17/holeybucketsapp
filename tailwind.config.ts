@@ -10,6 +10,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Exposes every brand token as e.g. `bg-brand-primary`, `text-brand-stone`.
         brand: brand.colors,
       },
       fontFamily: {

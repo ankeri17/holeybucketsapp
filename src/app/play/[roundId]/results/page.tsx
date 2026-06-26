@@ -13,6 +13,7 @@ import {
   formatToPar,
 } from "@/lib/scoring";
 import { buildShareImage, shareImage, downloadImage } from "@/lib/shareImage";
+import { BucketLogo, ChipInIcon, FoliageIcon } from "@/components/icons";
 import type { Course, Round } from "@/lib/types";
 
 /**
@@ -86,8 +87,8 @@ export default function ResultsPage() {
         <p className="text-sm font-semibold uppercase tracking-wide opacity-80">
           {round.groupName} · final
         </p>
-        <p className="mt-2 text-5xl">🏆</p>
-        <h1 className="mt-1 font-display text-3xl font-extrabold">
+        <BucketLogo className="mx-auto mt-2 h-16 w-16" />
+        <h1 className="mt-2 font-display text-3xl font-extrabold">
           {winner.name} wins!
         </h1>
         <p className="mt-1 opacity-90">
@@ -117,7 +118,7 @@ export default function ResultsPage() {
             type="button"
             disabled={!shareBlob}
             onClick={() => shareBlob && shareImage(shareBlob, round)}
-            className="tap-target flex-1 rounded-2xl bg-brand-pop px-5 font-extrabold text-white disabled:opacity-40"
+            className="tap-target flex-1 rounded-2xl bg-brand-sunshine px-5 font-extrabold text-brand-ink disabled:opacity-40"
           >
             Share
           </button>
@@ -175,7 +176,7 @@ export default function ResultsPage() {
       {/* PDF scorecard comes in Milestone 6 */}
       <button
         disabled
-        className="tap-target mt-6 w-full rounded-2xl bg-brand-accent px-6 font-extrabold text-brand-ink opacity-50"
+        className="tap-target mt-6 w-full rounded-2xl bg-brand-sunshine px-6 font-extrabold text-brand-ink opacity-50"
       >
         Print PDF scorecard — coming soon
       </button>
@@ -234,20 +235,26 @@ function Scorecard({ round, course }: { round: Round; course: Course }) {
                 const par = holePar(hole);
                 const color =
                   net == null
-                    ? "text-brand-ink/30"
+                    ? "text-brand-stone"
                     : net < par
                       ? "text-brand-primary"
                       : net > par
-                        ? "text-brand-pop"
+                        ? "text-brand-penalty"
                         : "text-brand-ink";
                 return (
                   <td
                     key={p.id}
                     className={`px-2 py-1.5 text-center font-bold ${color}`}
                   >
-                    {net ?? "–"}
-                    {score?.bucketChip ? "🪣" : ""}
-                    {score?.foliage ? "🌳" : ""}
+                    <span className="inline-flex items-center justify-center gap-0.5">
+                      {net ?? "–"}
+                      {score?.bucketChip && (
+                        <ChipInIcon className="h-3 w-3 text-brand-bucketBlue" />
+                      )}
+                      {score?.foliage && (
+                        <FoliageIcon className="h-3 w-3 text-brand-penalty" />
+                      )}
+                    </span>
                   </td>
                 );
               })}

@@ -166,7 +166,7 @@ export default function StartPage() {
       </div>
 
       {/* Sticky start button */}
-      <div className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-brand-ink/5 bg-brand-sand/95 px-5 py-3 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-brand-line bg-brand-cream/95 px-5 py-3 backdrop-blur">
         <button
           type="button"
           onClick={startRound}

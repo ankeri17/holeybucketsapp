@@ -36,20 +36,28 @@ export const brand = {
   umbrellaCredit: "A Four Irons Game",
 
   /**
-   * The colors used throughout the app. These are deliberately bold, bright,
-   * and summery — backyard-party energy. Swap the hex values to rebrand.
+   * The official Holey Buckets color palette — the design tokens the whole app
+   * themes from. Swap the hex values here to rebrand; every screen, the
+   * leaderboard colors, and the shareable image all follow this one file.
+   * (These are also published as CSS variables — see src/app/layout.tsx.)
    */
   colors: {
-    // Main brand color — buttons, highlights, headers.
-    primary: "#0F9D58", // grass green
-    // Secondary accent — sunny pop for chips, toggles, badges.
-    accent: "#FFC400", // sunshine yellow
-    // A warm splash for fun moments (wins, bonuses).
-    pop: "#FF6F3C", // bucket orange
-    // Deep text / dark surfaces.
-    ink: "#13211B", // near-black green
-    // App background.
-    sand: "#FBF7EE", // warm off-white
+    // — Core brand —
+    primary: "#1E9B4E", // Fairway green — primary buttons, active toggles
+    deepPine: "#14622F", // pressed/hover green; green text on cream
+    sunshine: "#F6B92C", // secondary CTA, highlights, celebration (ink text only)
+    bucketBlue: "#2E9BD6", // playful accent, links, "chipped in" moments
+
+    // — Neutrals —
+    cream: "#F7F3E8", // app background
+    card: "#FFFFFF", // card / surface backgrounds
+    ink: "#1B1C18", // primary text & headings
+    stone: "#6E6E66", // secondary text, labels, captions
+    line: "#E6E0D2", // borders, dividers on cream
+
+    // — Scoring semantics —
+    // Under-par / chip-in bonus reuses Fairway green (primary).
+    penalty: "#E0682E", // foliage (+1) and over-par — clay, not red
   },
 
   /**

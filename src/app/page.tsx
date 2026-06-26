@@ -1,57 +1,57 @@
 import Link from "next/link";
 import { brand } from "@/config/branding";
 import { defaultCourse } from "@/config/courses";
+import { BucketLogo } from "@/components/icons";
 
 /**
- * Landing page (Milestone 1).
+ * Landing page.
  *
- * This is intentionally a near-empty, branded placeholder. Its job right now is
- * to prove the deploy pipeline works end-to-end (push -> Netlify -> live URL).
- * The real flows (start a round, scoring, leaderboard, results, PDF) land in
- * the next milestones.
+ * One clear primary action (Start a round) carried by the boldest element on
+ * screen, with the course preview as a quieter secondary. Vertically centered
+ * so it doesn't feel top-heavy.
  */
 export default function Home() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-between px-6 py-10 text-center">
-      <div className="flex flex-1 flex-col items-center justify-center gap-6">
-        {/* Logo placeholder — swap for the real Holey Buckets mark later. */}
-        <div
-          aria-hidden
-          className="flex h-24 w-24 items-center justify-center rounded-3xl bg-brand-primary text-5xl shadow-lg"
-        >
-          🪣
-        </div>
+    <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6 py-10 text-center">
+      <div className="flex flex-col items-center gap-6">
+        <BucketLogo className="h-28 w-28 drop-shadow-sm" />
 
-        <div className="space-y-2">
-          <h1 className="font-display text-4xl font-extrabold tracking-tight text-brand-ink">
+        <div className="space-y-1">
+          <h1 className="font-display text-5xl font-extrabold tracking-tight text-brand-ink">
             {brand.name}
           </h1>
-          <p className="text-lg font-medium text-brand-ink/70">
+          <p className="text-lg font-medium text-brand-stone">
             {brand.tagline}
           </p>
         </div>
 
-        <div className="w-full space-y-3 pt-4">
+        <div className="w-full space-y-3 pt-2">
+          {/* Primary action — the boldest thing on the screen. */}
           <Link
             href="/start"
-            className="tap-target flex w-full items-center justify-center rounded-2xl bg-brand-primary px-6 text-lg font-bold text-white"
+            className="tap-target flex w-full items-center justify-center rounded-2xl bg-brand-primary px-6 py-4 text-xl font-extrabold text-white shadow-lg shadow-brand-primary/25 active:bg-brand-deepPine"
           >
             Start a round
           </Link>
 
-          {/* Preview the course, loaded from config. */}
+          {/* Secondary action — quieter, never out-weighs the primary. */}
           <Link
             href="/course"
-            className="tap-target flex w-full items-center justify-center rounded-2xl bg-brand-accent px-6 text-lg font-bold text-brand-ink"
+            className="tap-target flex w-full items-center justify-center rounded-2xl border-2 border-brand-line bg-brand-card px-6 font-bold text-brand-deepPine active:bg-brand-cream"
           >
             See the {defaultCourse.location} course →
           </Link>
         </div>
+
+        <p className="max-w-[18rem] text-sm font-medium text-brand-stone">
+          Grab a club, pick your crew, and chase the bucket. No app store, no
+          sign-up — just tap and play.
+        </p>
       </div>
 
-      <footer className="space-y-1 pt-8 text-sm text-brand-ink/60">
+      <footer className="mt-12 text-sm">
         {/* Small umbrella-brand credit only — Holey Buckets is the identity. */}
-        <p className="font-semibold text-brand-ink/70">{brand.umbrellaCredit}</p>
+        <p className="font-semibold text-brand-stone">{brand.umbrellaCredit}</p>
       </footer>
     </main>
   );

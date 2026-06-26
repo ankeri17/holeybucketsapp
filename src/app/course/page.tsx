@@ -64,7 +64,9 @@ export default function CoursePage() {
                   <span>{hole.distancePaces} paces</span>
                 )}
                 {hole.hazards && (
-                  <span className="text-brand-pop">⚠ {hole.hazards}</span>
+                  <span className="font-semibold text-brand-penalty">
+                    Heads up: {hole.hazards}
+                  </span>
                 )}
               </div>
               {hole.note && (
@@ -86,7 +88,7 @@ export default function CoursePage() {
 
 function Stat({ value, label }: { value: number; label: string }) {
   return (
-    <div className="rounded-xl bg-brand-accent/30 px-4 py-2 text-center">
+    <div className="rounded-xl bg-brand-sunshine/30 px-4 py-2 text-center">
       <div className="text-xl font-extrabold leading-none text-brand-ink">
         {value}
       </div>
