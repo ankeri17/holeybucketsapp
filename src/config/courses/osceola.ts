@@ -29,6 +29,7 @@ export const osceola: Course = {
   id: "osceola",
   name: "Holey Buckets at Osceola",
   location: "Osceola, WI",
+  host: "Hello Again Properties", // the host of this location (per-course, not a global brand)
   holes: [
     { number: 1, name: "The Warm-Up", distancePaces: 12, difficultyRank: 14, note: "Gentle opener — find your swing." },
     { number: 2, name: "Deck Party", distancePaces: 16, hazards: "Out of bounds left past the deck", difficultyRank: 9 },

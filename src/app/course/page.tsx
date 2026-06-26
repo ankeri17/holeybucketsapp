@@ -26,6 +26,11 @@ export default function CoursePage() {
           {course.name}
         </h1>
         <p className="mt-1 font-medium text-brand-ink/70">{course.location}</p>
+        {course.host && (
+          <p className="mt-0.5 text-sm text-brand-ink/55">
+            Hosted by {course.host}
+          </p>
+        )}
 
         <div className="mt-4 flex gap-3">
           <Stat value={course.holes.length} label="holes" />

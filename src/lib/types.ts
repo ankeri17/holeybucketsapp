@@ -58,6 +58,12 @@ export interface Course {
   name: string;
   /** Where it is, e.g. "Osceola, WI". */
   location: string;
+  /**
+   * Optional name of whoever hosts this course's location, e.g. "Hello Again
+   * Properties" for Osceola. This is per-course data, not a global brand —
+   * every course can carry its own host.
+   */
+  host?: string;
   /** The holes, in play order. */
   holes: Hole[];
 }

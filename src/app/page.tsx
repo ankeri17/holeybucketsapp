@@ -54,13 +54,8 @@ export default function Home() {
       </div>
 
       <footer className="space-y-1 pt-8 text-sm text-brand-ink/60">
-        <p>
-          A{" "}
-          <span className="font-semibold text-brand-ink/80">
-            {brand.parentBrand}
-          </span>{" "}
-          product
-        </p>
+        {/* Small umbrella-brand credit only — Holey Buckets is the identity. */}
+        <p className="font-semibold text-brand-ink/70">{brand.umbrellaCredit}</p>
       </footer>
     </main>
   );

@@ -5,7 +5,8 @@ where a group can score a round of bucket golf on their phones or print a paper
 scorecard. Built flagship-first for the Osceola, WI course, but architected so a
 "course" is just data — the same app works for any future course on any property.
 
-A **Hello Again Properties** product.
+A **Four Irons** game. (Each course carries its own host — Osceola is hosted by
+Hello Again Properties.)
 
 > **Status:** Milestone 1 — scaffolded app deploying to Netlify. Scoring,
 > leaderboard, results, and PDF features land in the next milestones.
