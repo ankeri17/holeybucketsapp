@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { defaultCourse } from "@/config/courses";
 import { holePar, coursePar } from "@/lib/course";
+import { PrintBlankButton } from "@/components/PrintBlankButton";
 
 /** Fallback tee thumbnail when a hole has no photo yet (generic, any course). */
 const TEE_PLACEHOLDER = "/placeholder-tee.svg";
@@ -60,9 +61,13 @@ export default function CoursePage() {
         </header>
       )}
 
-      <div className="mt-4 mb-6 flex gap-3">
+      <div className="mt-4 flex gap-3">
         <Stat value={course.holes.length} label="holes" />
         <Stat value={coursePar(course)} label="par" />
+      </div>
+
+      <div className="mt-4 mb-6">
+        <PrintBlankButton course={course} />
       </div>
 
       <ol className="space-y-3 tabular-nums">

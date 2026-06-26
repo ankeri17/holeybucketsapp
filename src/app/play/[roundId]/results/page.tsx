@@ -12,6 +12,7 @@ import {
   totalBalls,
 } from "@/lib/scoring";
 import { buildShareImage, shareImage, downloadImage } from "@/lib/shareImage";
+import { downloadResultsScorecard } from "@/lib/pdf";
 import { BucketLogo } from "@/components/icons";
 import { Scorecard } from "@/components/Scorecard";
 import type { Round } from "@/lib/types";
@@ -95,6 +96,13 @@ export default function ResultsPage() {
           {winner.total} strokes · {formatToPar(winner.toPar)}
         </p>
       </div>
+
+      {/* Rounds aren't saved anywhere — nudge a keepsake. */}
+      <p className="mt-4 rounded-2xl border border-brand-line bg-brand-sunshine/20 px-4 py-3 text-center text-sm font-medium text-brand-ink">
+        <span className="font-bold">Heads up —</span> rounds aren&apos;t saved.
+        Screenshot this page, share the card, or download the PDF below to keep
+        your results.
+      </p>
 
       {/* Shareable branded image */}
       <section className="mt-6">
@@ -197,12 +205,13 @@ export default function ResultsPage() {
         </section>
       )}
 
-      {/* PDF scorecard comes in Milestone 6 */}
+      {/* Completed-round PDF scorecard */}
       <button
-        disabled
-        className="tap-target mt-6 w-full rounded-2xl bg-brand-sunshine px-6 font-extrabold text-brand-ink opacity-50"
+        type="button"
+        onClick={() => downloadResultsScorecard(round, course)}
+        className="tap-target mt-6 w-full rounded-2xl bg-brand-sunshine px-6 font-extrabold text-brand-ink"
       >
-        Print PDF scorecard — coming soon
+        Download scorecard (PDF)
       </button>
 
       <div className="mt-4 flex gap-3">
