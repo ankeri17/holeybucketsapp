@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Tee photo placeholder">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#BFE0F2"/>
+      <stop offset="0.45" stop-color="#EAF3EA"/>
+      <stop offset="0.46" stop-color="#3FAE63"/>
+      <stop offset="1" stop-color="#1E9B4E"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#g)"/>
+  <ellipse cx="118" cy="150" rx="78" ry="26" fill="#37A95C"/>
+  <rect x="96" y="70" width="4" height="74" fill="#14622F"/>
+  <path d="M100 72 L150 86 L100 100 Z" fill="#E0682E"/>
+  <circle cx="74" cy="158" r="9" fill="#ffffff"/>
+</svg>

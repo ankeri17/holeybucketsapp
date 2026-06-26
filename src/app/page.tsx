@@ -12,10 +12,22 @@ import { LogoLockup } from "@/components/icons";
  */
 export default function Home() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6 py-10 text-center">
-      <div className="flex flex-col items-center gap-6">
+    <main className="relative mx-auto flex min-h-screen max-w-md flex-col items-center justify-center overflow-hidden px-6 py-10 text-center">
+      {/* Confetti motif — backyard-party energy, behind the content. Yellow
+          stays a confetti accent here, never a competing button. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <span className="absolute left-9 top-24 h-3 w-3 rounded-full bg-brand-sunshine" />
+        <span className="absolute right-12 top-16 h-2.5 w-2.5 rounded-full bg-brand-bucketBlue" />
+        <span className="absolute left-20 top-40 h-2 w-2 rounded-full bg-brand-penalty" />
+        <span className="absolute right-16 top-44 h-3 w-3 rounded-full bg-brand-sunshine/80" />
+        <span className="absolute left-1/2 top-10 h-2 w-2 rounded-full bg-brand-penalty/70" />
+        <span className="absolute right-24 top-1/3 h-2 w-2 rounded-full bg-brand-bucketBlue/70" />
+        <span className="absolute left-12 top-1/2 h-2.5 w-2.5 rounded-full bg-brand-sunshine/70" />
+      </div>
+
+      <div className="relative z-10 flex flex-col items-center gap-6">
         <div className="flex flex-col items-center">
-          <LogoLockup />
+          <LogoLockup markClassName="h-24 w-24" />
           <p className="mt-2 text-lg font-medium text-brand-stone">
             {brand.tagline}
           </p>
@@ -45,7 +57,7 @@ export default function Home() {
         </p>
       </div>
 
-      <footer className="mt-12 text-sm">
+      <footer className="relative z-10 mt-12 text-sm">
         {/* Small umbrella-brand credit only — Holey Buckets is the identity. */}
         <p className="font-semibold text-brand-stone">{brand.umbrellaCredit}</p>
       </footer>

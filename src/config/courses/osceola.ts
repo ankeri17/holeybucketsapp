@@ -33,6 +33,9 @@ export const osceola: Course = {
   host: "Hello Again Properties", // the host of this location (per-course, not a global brand)
   isPublic: true, // the flagship is publicly listed
   trackBalls: true, // The Gray Duck charges per ball, so tally balls used/lost
+  // Course hero image. Swap this for the real course photo (drop the file in
+  // /public/courses/grayduck/ and point this at it).
+  heroImage: "/courses/grayduck/hero.svg",
   holes: [
     { number: 1, name: "The Warm-Up", distancePaces: 12, difficultyRank: 14, note: "Gentle opener — find your swing." },
     { number: 2, name: "Deck Party", distancePaces: 16, hazards: "Out of bounds left past the deck", difficultyRank: 9 },

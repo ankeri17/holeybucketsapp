@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" role="img" aria-label="Course photo placeholder">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#BFE0F2"/>
+      <stop offset="1" stop-color="#EAF3EA"/>
+    </linearGradient>
+    <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3FAE63"/>
+      <stop offset="1" stop-color="#1E9B4E"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="700" fill="url(#sky)"/>
+  <ellipse cx="300" cy="140" rx="120" ry="36" fill="#ffffff" opacity="0.8"/>
+  <ellipse cx="430" cy="155" rx="90" ry="28" fill="#ffffff" opacity="0.65"/>
+  <ellipse cx="1180" cy="110" rx="150" ry="42" fill="#ffffff" opacity="0.75"/>
+  <path d="M0 360 Q 250 318 500 350 T 1000 342 T 1600 350 L1600 700 L0 700 Z" fill="#2E7D4B" opacity="0.45"/>
+  <path d="M0 440 Q 400 396 800 436 T 1600 436 L1600 700 L0 700 Z" fill="url(#grass)"/>
+  <ellipse cx="430" cy="620" rx="250" ry="74" fill="#EFE6CF"/>
+  <rect x="1138" y="300" width="7" height="212" fill="#14622F"/>
+  <path d="M1145 304 L1242 330 L1145 356 Z" fill="#E0682E"/>
+  <circle cx="980" cy="560" r="16" fill="#ffffff"/>
+  <g>
+    <rect x="40" y="40" rx="18" width="312" height="56" fill="#1B1C18" opacity="0.55"/>
+    <text x="62" y="78" font-family="system-ui, sans-serif" font-size="28" font-weight="700" fill="#ffffff">Placeholder photo</text>
+  </g>
+</svg>

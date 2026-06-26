@@ -118,51 +118,49 @@ export default function StartPage() {
         </button>
       </div>
 
-      {/* Format */}
+      {/* Format — with only one live option, show it selected plus a quiet
+          "more coming" line instead of a wall of greyed-out cards. */}
       <div className="mt-6">
         <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
           Format
         </span>
         <div className="space-y-2">
-          {FORMATS.map((opt) => {
+          {FORMATS.filter((opt) => opt.available).map((opt) => {
             const selected = opt.id === format;
             return (
               <button
                 key={opt.id}
                 type="button"
-                disabled={!opt.available}
-                onClick={() => opt.available && setFormat(opt.id)}
+                onClick={() => setFormat(opt.id)}
                 className={[
                   "flex w-full items-center justify-between rounded-2xl border-2 px-4 py-3 text-left transition-colors",
                   selected
                     ? "border-brand-primary bg-brand-primary/10"
-                    : "border-brand-ink/10 bg-white",
-                  opt.available ? "" : "opacity-50",
+                    : "border-brand-line bg-brand-card",
                 ].join(" ")}
               >
                 <span>
                   <span className="block font-display font-bold text-brand-ink">
                     {opt.label}
                   </span>
-                  <span className="block text-sm text-brand-ink/60">
+                  <span className="block text-sm text-brand-stone">
                     {opt.blurb}
                   </span>
                 </span>
-                {opt.available ? (
-                  selected && (
-                    <span className="text-xl font-bold text-brand-primary">
-                      ✓
-                    </span>
-                  )
-                ) : (
-                  <span className="rounded-full bg-brand-ink/10 px-2 py-0.5 text-xs font-semibold text-brand-ink/50">
-                    Soon
-                  </span>
+                {selected && (
+                  <span className="text-xl font-bold text-brand-primary">✓</span>
                 )}
               </button>
             );
           })}
         </div>
+        <p className="mt-2 text-sm text-brand-stone">
+          More formats coming soon —{" "}
+          {FORMATS.filter((opt) => !opt.available)
+            .map((opt) => opt.label)
+            .join(", ")}
+          .
+        </p>
       </div>
 
       {/* Sticky start button */}
