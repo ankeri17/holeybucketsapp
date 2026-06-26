@@ -100,7 +100,7 @@ export interface Player {
 /**
  * One player's result on one hole.
  *
- * Net strokes = strokes − (bucketChip ? 1 : 0) + (foliage ? 1 : 0).
+ * Net strokes = strokes − (bucketChip ? 1 : 0) + penalties.
  * (See src/lib/scoring.ts for the single source of truth on this math.)
  */
 export interface HoleScore {
@@ -108,8 +108,12 @@ export interface HoleScore {
   strokes: number;
   /** Chipped the ball *into* the bucket → subtract one stroke (the bonus). */
   bucketChip?: boolean;
-  /** Ball into bushes/water/plants → add one stroke (the penalty). */
-  foliage?: boolean;
+  /**
+   * Number of penalty strokes on this hole. A penalty (foliage, water, OB, or
+   * a lost ball) is +1 each and can happen more than once, so it's a count,
+   * not a flag. Defaults to 0.
+   */
+  penalties?: number;
 }
 
 /** A round being played (or finished) by a group. */
@@ -130,6 +134,13 @@ export interface Round {
    * A missing entry means that hole hasn't been scored yet.
    */
   scores: Record<string, Record<number, HoleScore>>;
+  /**
+   * Balls used/lost per player, keyed by player id. Only tracked when the
+   * course has `trackBalls` on (for per-ball billing). Kept entirely OUT of
+   * the score and NOT coupled to penalties — you can lose a ball without a
+   * penalty, or take a penalty without losing a ball.
+   */
+  balls?: Record<string, number>;
   /** ISO timestamp of when the round was started. */
   createdAt: string;
 }

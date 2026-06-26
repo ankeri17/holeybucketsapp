@@ -11,6 +11,7 @@ import {
   netStrokes,
   standings,
   formatToPar,
+  playerBalls,
 } from "@/lib/scoring";
 import { ChipInIcon, FoliageIcon } from "@/components/icons";
 import type { HoleScore, Round } from "@/lib/types";
@@ -20,9 +21,10 @@ import type { HoleScore, Round } from "@/lib/types";
  *
  * One hole at a time, every player on screen. The resulting HOLE SCORE is the
  * prominent number; raw strokes are the secondary input you adjust with the
- * +/− stepper. The bucket-chip (−1) bonus and foliage (+1) penalty are toggles,
- * and when one is on we show the math so nobody's confused by the difference.
- * Every change writes straight to the phone's storage.
+ * +/− stepper. The bucket-chip (−1) bonus is a toggle and the penalty (+1) is a
+ * counter (a hole can have several), and when either is active we show the math
+ * so nobody's confused by the difference. Venues that charge per ball also get
+ * a balls-used tally (kept out of the score). Every change writes to storage.
  */
 export default function PlayRoundPage() {
   const params = useParams<{ roundId: string }>();
@@ -89,6 +91,21 @@ export default function PlayRoundPage() {
     },
     [],
   );
+
+  // Ball tally is a round-level running total per player (not per hole), and
+  // never touches the score. Only used when the course tracks balls.
+  const updateBalls = useCallback((playerId: string, delta: number) => {
+    setRound((prev) => {
+      if (!prev) return prev;
+      const current = prev.balls?.[playerId] ?? 0;
+      const next: Round = {
+        ...prev,
+        balls: { ...(prev.balls ?? {}), [playerId]: Math.max(0, current + delta) },
+      };
+      saveRound(next);
+      return next;
+    });
+  }, []);
 
   if (!loaded) {
     return (
@@ -164,7 +181,9 @@ export default function PlayRoundPage() {
           const score = getHoleScore(round, player.id, hole.number);
           const strokes = score?.strokes ?? holePar(hole);
           const net = netStrokes(score ?? { strokes });
-          const hasModifier = !!score?.bucketChip || !!score?.foliage;
+          const penalties = score?.penalties ?? 0;
+          const balls = playerBalls(round, player.id);
+          const hasModifier = !!score?.bucketChip || penalties > 0;
           return (
             <div
               key={player.id}
@@ -221,7 +240,7 @@ export default function PlayRoundPage() {
                 </div>
               </div>
 
-              {/* Bonus / penalty toggles */}
+              {/* Bonus toggle + penalty counter */}
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <ToggleChip
                   active={!!score?.bucketChip}
@@ -235,18 +254,42 @@ export default function PlayRoundPage() {
                 >
                   Chipped in −1
                 </ToggleChip>
-                <ToggleChip
-                  active={!!score?.foliage}
-                  onClick={() =>
-                    updateScore(player.id, hole.number, {
-                      foliage: !score?.foliage,
-                    })
-                  }
-                  activeClass="bg-brand-penalty text-white"
-                  icon={<FoliageIcon className="h-5 w-5" />}
-                >
-                  Foliage +1
-                </ToggleChip>
+
+                {/* Penalty: a counter (+1 per tap) — a hole can have several. */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    aria-label={`Add a penalty for ${player.name}`}
+                    onClick={() =>
+                      updateScore(player.id, hole.number, {
+                        penalties: penalties + 1,
+                      })
+                    }
+                    className={[
+                      "tap-target flex w-full items-center justify-center gap-1.5 rounded-xl px-3 text-sm font-bold transition-colors",
+                      penalties > 0
+                        ? "bg-brand-penalty text-white"
+                        : "border border-brand-line bg-brand-card text-brand-stone",
+                    ].join(" ")}
+                  >
+                    <FoliageIcon className="h-5 w-5" />
+                    {penalties > 0 ? `Penalty +${penalties}` : "Penalty +1"}
+                  </button>
+                  {penalties > 0 && (
+                    <button
+                      type="button"
+                      aria-label={`Remove a penalty for ${player.name}`}
+                      onClick={() =>
+                        updateScore(player.id, hole.number, {
+                          penalties: Math.max(0, penalties - 1),
+                        })
+                      }
+                      className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full border border-brand-line bg-brand-card text-base font-bold text-brand-ink shadow"
+                    >
+                      −
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* The math, shown only when a modifier changes the score */}
@@ -256,11 +299,43 @@ export default function PlayRoundPage() {
                   {score?.bucketChip && (
                     <span className="text-brand-bucketBlue">− 1 chip-in</span>
                   )}
-                  {score?.foliage && (
-                    <span className="text-brand-penalty">+ 1 foliage</span>
+                  {penalties > 0 && (
+                    <span className="text-brand-penalty">
+                      + {penalties} penalt{penalties === 1 ? "y" : "ies"}
+                    </span>
                   )}
                   <span className="text-brand-ink">= {net}</span>
                 </p>
+              )}
+
+              {/* Ball tally — only when this venue charges per ball. Out of score. */}
+              {course.trackBalls && (
+                <div className="mt-3 flex items-center justify-between border-t border-brand-line pt-3">
+                  <span className="text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
+                    Balls used
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      aria-label={`Remove a ball for ${player.name}`}
+                      onClick={() => updateBalls(player.id, -1)}
+                      className="tap-target h-9 w-9 rounded-full border-2 border-brand-line bg-brand-card text-xl font-bold text-brand-ink active:bg-brand-cream"
+                    >
+                      −
+                    </button>
+                    <span className="w-6 text-center text-lg font-extrabold text-brand-ink">
+                      {balls}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label={`Add a ball for ${player.name}`}
+                      onClick={() => updateBalls(player.id, 1)}
+                      className="tap-target h-9 w-9 rounded-full border-2 border-brand-line bg-brand-card text-xl font-bold text-brand-ink active:bg-brand-cream"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           );

@@ -10,16 +10,16 @@ import { holePar } from "./course";
  *   - Every hole is a par 3.
  *   - Net score for a hole = strokes
  *                            − 1 if you chipped INTO the bucket (the bonus)
- *                            + 1 if you went into foliage/water (the penalty)
+ *                            + 1 per penalty (foliage/water/OB/lost ball)
  *   - Lowest total wins (Stroke Play).
  * ----------------------------------------------------------------------------
  */
 
-/** Net strokes for one hole, applying the bucket-chip bonus and foliage penalty. */
+/** Net strokes for one hole, applying the bucket-chip bonus and any penalties. */
 export function netStrokes(score: HoleScore | undefined): number {
   if (!score) return 0;
   const net =
-    score.strokes - (score.bucketChip ? 1 : 0) + (score.foliage ? 1 : 0);
+    score.strokes - (score.bucketChip ? 1 : 0) + (score.penalties ?? 0);
   // Can't score below zero, even with a first-throw chip-in.
   return Math.max(0, net);
 }
@@ -94,6 +94,16 @@ export function standings(round: Round, course: Course): Standing[] {
   });
 
   return rows;
+}
+
+/** Balls used/lost by one player (0 if untracked). Never affects the score. */
+export function playerBalls(round: Round, playerId: string): number {
+  return round.balls?.[playerId] ?? 0;
+}
+
+/** Total balls used/lost across the whole group. */
+export function totalBalls(round: Round): number {
+  return round.players.reduce((sum, p) => sum + playerBalls(round, p.id), 0);
 }
 
 /** Format a to-par number the golfy way: "E", "+3", "-1". */
