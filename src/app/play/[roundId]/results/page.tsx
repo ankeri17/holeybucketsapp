@@ -11,6 +11,8 @@ import {
   netStrokes,
   standings,
   formatToPar,
+  playerBalls,
+  totalBalls,
 } from "@/lib/scoring";
 import { buildShareImage, shareImage, downloadImage } from "@/lib/shareImage";
 import { BucketLogo, ChipInIcon, FoliageIcon } from "@/components/icons";
@@ -173,6 +175,30 @@ export default function ResultsPage() {
         <Scorecard round={round} course={course} />
       </section>
 
+      {/* Balls used — only for venues that charge per ball (out of the score) */}
+      {course.trackBalls && (
+        <section className="mt-6">
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
+            Balls used · {totalBalls(round)} total
+          </h2>
+          <ul className="space-y-2 tabular-nums">
+            {round.players.map((p) => (
+              <li
+                key={p.id}
+                className="flex items-center justify-between rounded-2xl border border-brand-line bg-brand-card px-4 py-2"
+              >
+                <span className="font-display font-bold text-brand-ink">
+                  {p.name}
+                </span>
+                <span className="font-extrabold text-brand-ink">
+                  {playerBalls(round, p.id)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/* PDF scorecard comes in Milestone 6 */}
       <button
         disabled
@@ -251,8 +277,15 @@ function Scorecard({ round, course }: { round: Round; course: Course }) {
                       {score?.bucketChip && (
                         <ChipInIcon className="h-3 w-3 text-brand-bucketBlue" />
                       )}
-                      {score?.foliage && (
-                        <FoliageIcon className="h-3 w-3 text-brand-penalty" />
+                      {!!score?.penalties && (
+                        <span className="inline-flex items-center text-brand-penalty">
+                          <FoliageIcon className="h-3 w-3" />
+                          {score.penalties > 1 ? (
+                            <span className="text-[10px] font-bold">
+                              {score.penalties}
+                            </span>
+                          ) : null}
+                        </span>
                       )}
                     </span>
                   </td>
