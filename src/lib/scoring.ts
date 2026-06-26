@@ -106,6 +106,23 @@ export function totalBalls(round: Round): number {
   return round.players.reduce((sum, p) => sum + playerBalls(round, p.id), 0);
 }
 
+/**
+ * Everyone sharing the best (lowest) total — usually one player, but more when
+ * there's a tie. Callers use `length > 1` to detect a tie.
+ */
+export function winners(board: Standing[]): Standing[] {
+  if (board.length === 0) return [];
+  const best = board[0].total;
+  return board.filter((row) => row.total === best);
+}
+
+/** "Erin", "Erin & Laura", or "Erin, Laura & Sam". */
+export function joinNames(names: string[]): string {
+  if (names.length <= 1) return names[0] ?? "";
+  if (names.length === 2) return `${names[0]} & ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`;
+}
+
 /** Format a to-par number the golfy way: "E", "+3", "-1". */
 export function formatToPar(toPar: number): string {
   if (toPar === 0) return "E";
