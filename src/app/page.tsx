@@ -32,18 +32,14 @@ export default function Home() {
         </div>
 
         <div className="w-full space-y-3 pt-4">
-          {/* Placeholder primary action — the scoring flow lands in Milestone 3. */}
-          <button
-            disabled
-            className="tap-target w-full rounded-2xl bg-brand-primary px-6 text-lg font-bold text-white opacity-60"
+          <Link
+            href="/start"
+            className="tap-target flex w-full items-center justify-center rounded-2xl bg-brand-primary px-6 text-lg font-bold text-white"
           >
             Start a round
-          </button>
-          <span className="block text-sm font-semibold text-brand-ink/50">
-            Scoring coming soon
-          </span>
+          </Link>
 
-          {/* Live now: preview the course, loaded from config. */}
+          {/* Preview the course, loaded from config. */}
           <Link
             href="/course"
             className="tap-target flex w-full items-center justify-center rounded-2xl bg-brand-accent px-6 text-lg font-bold text-brand-ink"
