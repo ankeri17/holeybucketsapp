@@ -159,7 +159,7 @@ export default function PlayRoundPage() {
       </section>
 
       {/* Player scorers */}
-      <div className="mt-4 space-y-3">
+      <div className="mt-4 space-y-3 tabular-nums">
         {round.players.map((player) => {
           const score = getHoleScore(round, player.id, hole.number);
           const strokes = score?.strokes ?? holePar(hole);
@@ -187,7 +187,7 @@ export default function PlayRoundPage() {
 
               {/* Strokes stepper (the secondary input) */}
               <div className="mt-3 flex items-center justify-between">
-                <span className="text-sm font-bold uppercase tracking-wide text-brand-stone">
+                <span className="text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
                   Strokes
                 </span>
                 <div className="flex items-center gap-3">
@@ -269,10 +269,10 @@ export default function PlayRoundPage() {
 
       {/* Live leaderboard */}
       <section className="mt-6">
-        <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-brand-stone">
+        <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
           Leaderboard
         </h2>
-        <ol className="space-y-1.5">
+        <ol className="space-y-1.5 tabular-nums">
           {board.map((row) => (
             <li
               key={row.playerId}

@@ -71,7 +71,7 @@ export default function StartPage() {
 
       {/* Group name */}
       <label className="block">
-        <span className="mb-1 block text-sm font-bold uppercase tracking-wide text-brand-ink/60">
+        <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
           Group name
         </span>
         <input
@@ -84,7 +84,7 @@ export default function StartPage() {
 
       {/* Players */}
       <div className="mt-6">
-        <span className="mb-2 block text-sm font-bold uppercase tracking-wide text-brand-ink/60">
+        <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
           Players
         </span>
         <div className="space-y-2">
@@ -120,7 +120,7 @@ export default function StartPage() {
 
       {/* Format */}
       <div className="mt-6">
-        <span className="mb-2 block text-sm font-bold uppercase tracking-wide text-brand-ink/60">
+        <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
           Format
         </span>
         <div className="space-y-2">

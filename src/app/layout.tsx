@@ -1,6 +1,23 @@
 import type { Metadata, Viewport } from "next";
+import { Bricolage_Grotesque, Figtree } from "next/font/google";
 import { brand } from "@/config/branding";
 import "./globals.css";
+
+// Two fonts only (per the type kit):
+//   Display — Bricolage Grotesque: wordmark, titles, hole/player names, wins.
+//   Text/UI — Figtree: body, buttons, labels, scores, leaderboard.
+const display = Bricolage_Grotesque({
+  subsets: ["latin"],
+  weight: ["700", "800"],
+  variable: "--font-display",
+  display: "swap",
+});
+const text = Figtree({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-text",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: `${brand.name} — ${brand.tagline}`,
@@ -37,7 +54,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" style={cssTokens}>
+    <html
+      lang="en"
+      style={cssTokens}
+      className={`${display.variable} ${text.variable}`}
+    >
       <body className="font-body antialiased">{children}</body>
     </html>
   );

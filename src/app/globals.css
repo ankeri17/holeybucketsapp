@@ -2,12 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* Fallback font stacks; real brand fonts can be wired up later. */
-  --font-display: "Poppins", system-ui, sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
-}
-
 html,
 body {
   height: 100%;
@@ -16,7 +10,15 @@ body {
 body {
   background-color: theme("colors.brand.cream");
   color: theme("colors.brand.ink");
+  line-height: 1.5;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Numbers (scores, leaderboard, scorecard) use tabular figures so columns
+   line up. Pair with the `tabular-nums` utility on number-heavy elements. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }
 
 /* Big, thumb-friendly tap targets are a core product principle.
