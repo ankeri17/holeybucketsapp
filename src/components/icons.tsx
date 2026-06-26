@@ -7,6 +7,24 @@
  * the brand tokens directly so it's always on-brand.
  */
 
+import { brand } from "@/config/branding";
+
+/**
+ * The full logo lockup: the bucket mark integrated with the wordmark as one
+ * unit (the mark overlaps the top of the wordmark so they read as designed
+ * together, not two stacked elements).
+ */
+export function LogoLockup({ className }: { className?: string }) {
+  return (
+    <div className={`flex flex-col items-center ${className ?? ""}`}>
+      <BucketLogo className="h-20 w-20 drop-shadow-sm" />
+      <span className="-mt-2 text-center font-display text-5xl font-extrabold leading-[0.95] tracking-tight text-brand-ink">
+        {brand.name}
+      </span>
+    </div>
+  );
+}
+
 /** The Holey Buckets logo mark: a bucket with a ball arcing into it. */
 export function BucketLogo({ className }: { className?: string }) {
   return (

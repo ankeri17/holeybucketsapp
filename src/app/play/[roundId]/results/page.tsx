@@ -4,19 +4,17 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { getCourse } from "@/config/courses";
-import { holePar } from "@/lib/course";
 import { loadRound } from "@/lib/storage";
 import {
-  getHoleScore,
-  netStrokes,
   standings,
   formatToPar,
   playerBalls,
   totalBalls,
 } from "@/lib/scoring";
 import { buildShareImage, shareImage, downloadImage } from "@/lib/shareImage";
-import { BucketLogo, ChipInIcon, FoliageIcon } from "@/components/icons";
-import type { Course, Round } from "@/lib/types";
+import { BucketLogo } from "@/components/icons";
+import { Scorecard } from "@/components/Scorecard";
+import type { Round } from "@/lib/types";
 
 /**
  * Branded results screen (Milestone 5).
@@ -222,96 +220,5 @@ export default function ResultsPage() {
         </Link>
       </div>
     </main>
-  );
-}
-
-/** The full hole-by-hole grid: a row per hole, a column per player. */
-function Scorecard({ round, course }: { round: Round; course: Course }) {
-  return (
-    <div className="overflow-x-auto rounded-2xl ring-1 ring-brand-ink/5">
-      <table className="w-full border-collapse bg-white text-sm tabular-nums">
-        <thead>
-          <tr className="bg-brand-ink/5 text-brand-ink/70">
-            <th className="px-2 py-2 text-left font-bold">Hole</th>
-            <th className="px-2 py-2 font-bold">Par</th>
-            {round.players.map((p) => (
-              <th key={p.id} className="px-2 py-2 font-bold">
-                {p.name}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {course.holes.map((hole) => (
-            <tr key={hole.number} className="border-t border-brand-ink/5">
-              <td className="px-2 py-1.5 text-left font-semibold text-brand-ink/70">
-                {hole.number}
-                {hole.name ? (
-                  <span className="ml-1 text-xs text-brand-ink/40">
-                    {hole.name}
-                  </span>
-                ) : null}
-              </td>
-              <td className="px-2 py-1.5 text-center text-brand-ink/50">
-                {holePar(hole)}
-              </td>
-              {round.players.map((p) => {
-                const score = getHoleScore(round, p.id, hole.number);
-                const net = score ? netStrokes(score) : null;
-                const par = holePar(hole);
-                const color =
-                  net == null
-                    ? "text-brand-stone"
-                    : net < par
-                      ? "text-brand-primary"
-                      : net > par
-                        ? "text-brand-penalty"
-                        : "text-brand-ink";
-                return (
-                  <td
-                    key={p.id}
-                    className={`px-2 py-1.5 text-center font-bold ${color}`}
-                  >
-                    <span className="inline-flex items-center justify-center gap-0.5">
-                      {net ?? "–"}
-                      {score?.bucketChip && (
-                        <ChipInIcon className="h-3 w-3 text-brand-bucketBlue" />
-                      )}
-                      {!!score?.penalties && (
-                        <span className="inline-flex items-center text-brand-penalty">
-                          <FoliageIcon className="h-3 w-3" />
-                          {score.penalties > 1 ? (
-                            <span className="text-[10px] font-bold">
-                              {score.penalties}
-                            </span>
-                          ) : null}
-                        </span>
-                      )}
-                    </span>
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr className="border-t-2 border-brand-ink/10 bg-brand-ink/5 font-extrabold">
-            <td className="px-2 py-2 text-left">Total</td>
-            <td className="px-2 py-2" />
-            {round.players.map((p) => {
-              const total = course.holes.reduce((sum, hole) => {
-                const score = getHoleScore(round, p.id, hole.number);
-                return sum + (score ? netStrokes(score) : 0);
-              }, 0);
-              return (
-                <td key={p.id} className="px-2 py-2 text-center text-brand-ink">
-                  {total}
-                </td>
-              );
-            })}
-          </tr>
-        </tfoot>
-      </table>
-    </div>
   );
 }

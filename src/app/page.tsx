@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { brand } from "@/config/branding";
 import { defaultCourse } from "@/config/courses";
-import { BucketLogo } from "@/components/icons";
+import { LogoLockup } from "@/components/icons";
 
 /**
  * Landing page.
@@ -14,13 +14,9 @@ export default function Home() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6 py-10 text-center">
       <div className="flex flex-col items-center gap-6">
-        <BucketLogo className="h-28 w-28 drop-shadow-sm" />
-
-        <div className="space-y-1">
-          <h1 className="font-display text-5xl font-extrabold tracking-tight text-brand-ink">
-            {brand.name}
-          </h1>
-          <p className="text-lg font-medium text-brand-stone">
+        <div className="flex flex-col items-center">
+          <LogoLockup />
+          <p className="mt-2 text-lg font-medium text-brand-stone">
             {brand.tagline}
           </p>
         </div>
