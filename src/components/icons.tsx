@@ -14,10 +14,16 @@ import { brand } from "@/config/branding";
  * unit (the mark overlaps the top of the wordmark so they read as designed
  * together, not two stacked elements).
  */
-export function LogoLockup({ className }: { className?: string }) {
+export function LogoLockup({
+  className,
+  markClassName = "h-20 w-20",
+}: {
+  className?: string;
+  markClassName?: string;
+}) {
   return (
     <div className={`flex flex-col items-center ${className ?? ""}`}>
-      <BucketLogo className="h-20 w-20 drop-shadow-sm" />
+      <BucketLogo className={`${markClassName} drop-shadow-sm`} />
       <span className="-mt-2 text-center font-display text-5xl font-extrabold leading-[0.95] tracking-tight text-brand-ink">
         {brand.name}
       </span>
