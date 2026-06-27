@@ -16,6 +16,9 @@ import {
 import { ChipInIcon, FoliageIcon } from "@/components/icons";
 import type { HoleScore, Round } from "@/lib/types";
 
+/** Fallback tee photo when a hole has none (generic, any course). */
+const TEE_PLACEHOLDER = "/placeholder-tee.svg";
+
 /**
  * Scoring screen — the heart of the app.
  *
@@ -107,6 +110,15 @@ export default function PlayRoundPage() {
     });
   }, []);
 
+  // Change hole and scroll back to the top so the hole header (which hole
+  // you're on) is the first thing in view.
+  const goToHole = useCallback((updater: (i: number) => number) => {
+    setHoleIndex(updater);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, []);
+
   if (!loaded) {
     return (
       <main className="mx-auto max-w-md px-5 py-10 text-center text-brand-stone">
@@ -151,28 +163,38 @@ export default function PlayRoundPage() {
         </span>
       </div>
 
-      {/* Hole header */}
-      <section className="mt-3 rounded-2xl bg-brand-primary px-5 py-4 text-white">
-        <div className="flex items-baseline justify-between">
-          <span className="text-sm font-semibold uppercase tracking-wide opacity-80">
-            Hole {hole.number} of {course.holes.length}
-          </span>
-          <span className="text-sm font-semibold opacity-80">
-            Par {holePar(hole)}
-          </span>
-        </div>
-        {hole.name && (
-          <h1 className="font-display text-2xl font-extrabold">{hole.name}</h1>
-        )}
-        <div className="mt-1 flex flex-wrap gap-x-4 text-sm opacity-90">
-          {hole.distancePaces != null && <span>{hole.distancePaces} paces</span>}
-          {hole.hazards && (
-            <span className="font-semibold">Heads up: {hole.hazards}</span>
+      {/* Hole header — tee photo above the info */}
+      <section className="mt-3 overflow-hidden rounded-2xl">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={hole.teePhoto ?? TEE_PLACEHOLDER}
+          alt=""
+          className="h-32 w-full object-cover"
+        />
+        <div className="bg-brand-primary px-5 py-4 text-white">
+          <div className="flex items-baseline justify-between">
+            <span className="text-sm font-semibold uppercase tracking-wide opacity-80">
+              Hole {hole.number} of {course.holes.length}
+            </span>
+            <span className="text-sm font-semibold opacity-80">
+              Par {holePar(hole)}
+            </span>
+          </div>
+          {hole.name && (
+            <h1 className="font-display text-2xl font-extrabold">{hole.name}</h1>
+          )}
+          <div className="mt-1 flex flex-wrap gap-x-4 text-sm opacity-90">
+            {hole.distancePaces != null && (
+              <span>{hole.distancePaces} paces</span>
+            )}
+            {hole.hazards && (
+              <span className="font-semibold">Heads up: {hole.hazards}</span>
+            )}
+          </div>
+          {hole.note && (
+            <p className="mt-1 text-sm italic opacity-80">{hole.note}</p>
           )}
         </div>
-        {hole.note && (
-          <p className="mt-1 text-sm italic opacity-80">{hole.note}</p>
-        )}
       </section>
 
       {/* Player scorers */}
@@ -384,7 +406,7 @@ export default function PlayRoundPage() {
       <nav className="fixed inset-x-0 bottom-0 mx-auto flex max-w-md items-center gap-3 border-t border-brand-line bg-brand-cream/95 px-4 py-3 backdrop-blur">
         <button
           type="button"
-          onClick={() => setHoleIndex((i) => Math.max(0, i - 1))}
+          onClick={() => goToHole((i) => Math.max(0, i - 1))}
           disabled={isFirst}
           className="tap-target rounded-2xl border-2 border-brand-line bg-brand-card px-5 font-bold text-brand-ink disabled:opacity-30"
         >
@@ -402,7 +424,7 @@ export default function PlayRoundPage() {
           <button
             type="button"
             onClick={() =>
-              setHoleIndex((i) => Math.min(course.holes.length - 1, i + 1))
+              goToHole((i) => Math.min(course.holes.length - 1, i + 1))
             }
             className="tap-target flex-1 rounded-2xl bg-brand-primary px-5 text-lg font-extrabold text-white active:bg-brand-deepPine"
           >
