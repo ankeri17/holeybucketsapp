@@ -1,4 +1,4 @@
-import type { Round, ScoringFormat } from "./types";
+import { SCHEMA_VERSION, type Round, type ScoringFormat } from "./types";
 import { newId } from "./ids";
 
 /** What the start-a-round form collects to build a new round. */
@@ -16,6 +16,7 @@ export interface NewRoundInput {
  */
 export function createRound(input: NewRoundInput): Round {
   return {
+    schemaVersion: SCHEMA_VERSION,
     id: newId(),
     courseId: input.courseId,
     groupName: input.groupName.trim(),

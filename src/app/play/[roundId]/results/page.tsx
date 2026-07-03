@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { getCourse } from "@/config/courses";
-import { loadRound } from "@/lib/storage";
+import { loadRound, clearActiveRoundId } from "@/lib/storage";
 import {
   standings,
   formatToPar,
@@ -44,17 +44,21 @@ export default function ResultsPage() {
     [round, course],
   );
 
-  // Build the shareable image once the round is loaded.
+  // Build the shareable image once the round is loaded. `cancelled` guards the
+  // async gap: if the page unmounts before the canvas resolves, don't set
+  // state or mint an object URL nothing will revoke.
   useEffect(() => {
     if (!round || !course) return;
+    let cancelled = false;
     let url: string | null = null;
     buildShareImage(round, course, standings(round, course)).then((blob) => {
-      if (!blob) return;
+      if (!blob || cancelled) return;
       setShareBlob(blob);
       url = URL.createObjectURL(blob);
       setShareUrl(url);
     });
     return () => {
+      cancelled = true;
       if (url) URL.revokeObjectURL(url);
     };
   }, [round, course]);
@@ -230,6 +234,9 @@ export default function ResultsPage() {
         </Link>
         <Link
           href="/"
+          // Done = this round is over — stop offering "Resume" on the
+          // landing page. The round itself stays in storage.
+          onClick={() => clearActiveRoundId()}
           className="tap-target flex flex-1 items-center justify-center rounded-2xl bg-brand-primary px-5 font-bold text-white"
         >
           Done
