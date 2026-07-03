@@ -1,12 +1,13 @@
-# CI: every pull request (and every push to the default branch) must
-# typecheck, lint, pass the tests, and build before it can be trusted.
-# Netlify still does the deploying — this just stops broken code from
-# reaching it.
+# CI: every pull request (and every push to the working or release branch)
+# must typecheck, lint, pass the tests, and build before it can be trusted.
+# Netlify deploys from `main`; day-to-day work merges into the default
+# branch and is released by PRing it into `main`. This just stops broken
+# code from reaching either.
 name: CI
 
 on:
   push:
-    branches: [claude/holey-buckets-app-review-gcuzef]
+    branches: [main, claude/holey-buckets-app-review-gcuzef]
   pull_request:
 
 jobs:
