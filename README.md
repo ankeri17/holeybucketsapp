@@ -111,8 +111,10 @@ terminal to deploy:
    existing project** and pick this repository.
 3. Netlify reads `netlify.toml` automatically — no settings to fill in. Click
    **Deploy**.
-4. Every time changes are pushed to the repo, Netlify rebuilds and publishes the
-   live site automatically.
+4. **Netlify publishes from the `main` branch.** Day-to-day work merges into
+   the default working branch; to release, open a pull request from the
+   working branch into `main` and merge it — Netlify rebuilds and publishes
+   the live site automatically on every merge to `main`.
 
 ## Tech choices (plain English)
 
