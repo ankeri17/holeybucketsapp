@@ -19,6 +19,9 @@ import type { Course, Hole, Round } from "@/lib/types";
 export function Scorecard({ round, course }: { round: Round; course: Course }) {
   const front = course.holes.slice(0, 9);
   const back = course.holes.slice(9);
+  const hasAssumedPar = Object.values(round.scores).some((byHole) =>
+    Object.values(byHole).some((s) => s.autoFilled),
+  );
 
   return (
     <div className="space-y-3 tabular-nums">
@@ -27,6 +30,12 @@ export function Scorecard({ round, course }: { round: Round; course: Course }) {
         <Nine round={round} holes={back} subtotalLabel="IN" />
       )}
       <Totals round={round} course={course} />
+      {hasAssumedPar && (
+        <p className="px-1 text-xs text-brand-stone">
+          Italic scores are assumed par — the hole was opened but nobody
+          adjusted the score.
+        </p>
+      )}
     </div>
   );
 }
@@ -84,19 +93,20 @@ function Nine({
                   const net = score ? netStrokes(score) : null;
                   if (net != null) sum += net;
                   const par = holePar(h);
-                  const color =
+                  // Assumed-par (auto-filled) scores read quiet and italic so
+                  // they don't pass for scores someone actually entered.
+                  const style =
                     net == null
-                      ? "text-brand-stone"
-                      : net < par
-                        ? "text-brand-primary"
-                        : net > par
-                          ? "text-brand-penalty"
-                          : "text-brand-ink";
+                      ? "font-bold text-brand-stone"
+                      : score?.autoFilled
+                        ? "font-normal italic text-brand-stone"
+                        : net < par
+                          ? "font-bold text-brand-primary"
+                          : net > par
+                            ? "font-bold text-brand-penalty"
+                            : "font-bold text-brand-ink";
                   return (
-                    <td
-                      key={h.number}
-                      className={`px-0 py-1 font-bold ${color}`}
-                    >
+                    <td key={h.number} className={`px-0 py-1 ${style}`}>
                       {net ?? "–"}
                     </td>
                   );

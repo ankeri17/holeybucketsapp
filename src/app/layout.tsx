@@ -24,12 +24,12 @@ export const metadata: Metadata = {
   description: `The official digital companion to ${brand.name}. Score a round on your phone or print a scorecard.`,
 };
 
+// No maximum-scale lock: pinch-zoom must stay available (low-vision players
+// rely on it, and iOS ignores the lock anyway).
 export const viewport: Viewport = {
   themeColor: brand.colors.primary,
   width: "device-width",
   initialScale: 1,
-  // Lock zoom so the scoring screen feels like an app, not a web page.
-  maximumScale: 1,
 };
 
 // Publish the brand palette as CSS custom properties, derived from the one

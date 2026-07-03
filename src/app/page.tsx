@@ -2,6 +2,7 @@ import Link from "next/link";
 import { brand } from "@/config/branding";
 import { defaultCourse } from "@/config/courses";
 import { LogoLockup } from "@/components/icons";
+import { ResumeRoundButton } from "@/components/ResumeRoundButton";
 
 /**
  * Landing page.
@@ -34,6 +35,11 @@ export default function Home() {
         </div>
 
         <div className="w-full space-y-3 pt-2">
+          {/* If a round is in progress on this phone, the way back in comes
+              first — nobody should lose their group's scores to a locked
+              screen. Renders nothing when there's no active round. */}
+          <ResumeRoundButton />
+
           {/* Primary action — the boldest thing on the screen. */}
           <Link
             href="/start"
