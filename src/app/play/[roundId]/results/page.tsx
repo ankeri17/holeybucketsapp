@@ -108,11 +108,11 @@ export default function ResultsPage() {
         </p>
       </div>
 
-      {/* Rounds aren't saved anywhere — nudge a keepsake. */}
+      {/* Rounds live only in this phone's storage — nudge a keepsake. */}
       <p className="mt-4 rounded-2xl border border-brand-line bg-brand-sunshine/20 px-4 py-3 text-center text-sm font-medium text-brand-ink">
-        <span className="font-bold">Heads up —</span> rounds aren&apos;t saved.
-        Screenshot this page, share the card, or download the PDF below to keep
-        your results.
+        <span className="font-bold">Heads up —</span> rounds live only on this
+        phone. Screenshot this page, share the card, or download the PDF below
+        to keep your results.
       </p>
 
       {/* Shareable branded image */}
