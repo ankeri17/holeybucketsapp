@@ -96,7 +96,7 @@ export default function ResultsPage() {
         <p className="text-sm font-semibold uppercase tracking-wide opacity-80">
           {round.groupName} · final
         </p>
-        <BucketLogo className="mx-auto mt-2 h-16 w-16" />
+        <BucketLogo onDark className="mx-auto mt-2 h-16 w-16" />
         <h1 className="mt-2 font-display text-3xl font-extrabold">
           {isTie
             ? `It's a tie!`

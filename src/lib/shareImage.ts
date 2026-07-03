@@ -106,7 +106,11 @@ export function buildShareImage(
   return new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
 }
 
-/** The Holey Buckets logo mark drawn on canvas (white, for the green header). */
+/**
+ * The Holey Buckets logo mark drawn on canvas (white bucket for the green
+ * header), matching the SVG mark in src/components/icons.tsx: a bucket with
+ * a golf flag planted in it and a ball arcing in.
+ */
 function drawBucketMark(
   ctx: CanvasRenderingContext2D,
   cx: number,
@@ -114,28 +118,46 @@ function drawBucketMark(
 ): void {
   const c = brand.colors;
 
-  // Ball trajectory arc
+  // Flag pole, planted inside the bucket (bucket drawn over its base)
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 8;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(cx + 26, cy - 18);
+  ctx.lineTo(cx + 26, cy - 92);
+  ctx.stroke();
+
+  // Flag
+  ctx.fillStyle = c.penalty;
+  ctx.beginPath();
+  ctx.moveTo(cx + 30, cy - 96);
+  ctx.lineTo(cx + 78, cy - 80);
+  ctx.lineTo(cx + 30, cy - 64);
+  ctx.closePath();
+  ctx.fill();
+
+  // Ball trajectory arc into the bucket
   ctx.strokeStyle = c.sunshine;
   ctx.lineWidth = 7;
   ctx.lineCap = "round";
   ctx.setLineDash([2, 18]);
   ctx.beginPath();
-  ctx.moveTo(cx - 78, cy + 20);
-  ctx.quadraticCurveTo(cx - 10, cy - 80, cx + 56, cy - 56);
+  ctx.moveTo(cx - 76, cy + 2);
+  ctx.quadraticCurveTo(cx - 50, cy - 78, cx - 16, cy - 62);
   ctx.stroke();
   ctx.setLineDash([]);
 
   // Ball
   ctx.fillStyle = c.sunshine;
   ctx.beginPath();
-  ctx.arc(cx + 60, cy - 56, 14, 0, Math.PI * 2);
+  ctx.arc(cx - 11, cy - 60, 14, 0, Math.PI * 2);
   ctx.fill();
 
   // Bucket body
   ctx.fillStyle = "#ffffff";
   ctx.beginPath();
-  ctx.moveTo(cx - 56, cy - 22);
-  ctx.lineTo(cx + 56, cy - 22);
+  ctx.moveTo(cx - 56, cy - 18);
+  ctx.lineTo(cx + 56, cy - 18);
   ctx.lineTo(cx + 40, cy + 70);
   ctx.quadraticCurveTo(cx, cy + 84, cx - 40, cy + 70);
   ctx.closePath();
@@ -144,7 +166,7 @@ function drawBucketMark(
   // Bucket rim
   ctx.fillStyle = c.deepPine;
   ctx.beginPath();
-  ctx.ellipse(cx, cy - 22, 56, 14, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx, cy - 18, 56, 14, 0, 0, Math.PI * 2);
   ctx.fill();
 }
 
