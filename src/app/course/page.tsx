@@ -19,7 +19,7 @@ export default function CoursePage() {
   const total = course.holes.length;
 
   return (
-    <main className="mx-auto min-h-screen max-w-md px-5 pb-16 pt-6">
+    <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-6">
       <Link
         href="/"
         className="text-sm font-semibold text-brand-stone hover:text-brand-ink"
@@ -105,9 +105,15 @@ export default function CoursePage() {
                 {hole.distancePaces != null && (
                   <span>{hole.distancePaces} paces</span>
                 )}
+                {/* Only the label gets the warning color — with 15 of 18
+                    holes carrying a hazard, all-orange text made the whole
+                    page read like an alarm. */}
                 {hole.hazards && (
-                  <span className="font-semibold text-brand-penalty">
-                    Heads up: {hole.hazards}
+                  <span>
+                    <span className="font-semibold text-brand-penalty">
+                      Heads up:{" "}
+                    </span>
+                    {hole.hazards}
                   </span>
                 )}
               </div>
@@ -130,6 +136,17 @@ export default function CoursePage() {
         Hole details and photos are placeholders until the real course data is
         added.
       </p>
+
+      {/* Sticky start CTA — browsing the course shouldn't be a dead end.
+          Bottom padding respects the iPhone home-indicator safe area. */}
+      <div className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-brand-line bg-brand-cream/95 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
+        <Link
+          href="/start"
+          className="tap-target flex w-full items-center justify-center rounded-2xl bg-brand-primary px-6 text-lg font-extrabold text-white active:bg-brand-deepPine"
+        >
+          Start a round here →
+        </Link>
+      </div>
     </main>
   );
 }
