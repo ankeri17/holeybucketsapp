@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { getCourse } from "@/config/courses";
@@ -36,6 +36,7 @@ export default function PlayRoundPage() {
   const [round, setRound] = useState<Round | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [holeIndex, setHoleIndex] = useState(0);
+  const holeStripRef = useRef<HTMLDivElement>(null);
 
   const course = round ? getCourse(round.courseId) : undefined;
 
@@ -139,6 +140,13 @@ export default function PlayRoundPage() {
     }
   }, []);
 
+  // Keep the current hole's chip visible in the jump strip.
+  useEffect(() => {
+    holeStripRef.current
+      ?.querySelector('[aria-current="true"]')
+      ?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+  }, [holeIndex]);
+
   if (!loaded) {
     return (
       <main className="mx-auto max-w-md px-5 py-10 text-center text-brand-stone">
@@ -183,8 +191,41 @@ export default function PlayRoundPage() {
         </span>
       </div>
 
+      {/* Hole jump strip — go straight to any hole (and see where you are).
+          Landing on a hole seeds par for everyone, so skipping around is
+          safe; skipped holes just record assumed par. */}
+      <div ref={holeStripRef} className="-mx-4 mt-3 overflow-x-auto px-4">
+        <div className="flex gap-1.5 pb-1">
+          {course.holes.map((h, i) => {
+            const current = i === holeIndex;
+            const visited = round.players.some(
+              (p) => round.scores[p.id]?.[h.number] != null,
+            );
+            return (
+              <button
+                key={h.number}
+                type="button"
+                onClick={() => goToHole(i)}
+                aria-label={`Go to hole ${h.number}`}
+                aria-current={current ? "true" : undefined}
+                className={[
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors",
+                  current
+                    ? "bg-brand-primary text-white"
+                    : visited
+                      ? "bg-brand-primary/10 text-brand-ink"
+                      : "border border-brand-line bg-brand-card text-brand-stone",
+                ].join(" ")}
+              >
+                {h.number}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Hole header — tee photo above the info */}
-      <section className="mt-3 overflow-hidden rounded-2xl">
+      <section className="mt-2 overflow-hidden rounded-2xl">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={hole.teePhoto ?? TEE_PLACEHOLDER}
@@ -232,8 +273,8 @@ export default function PlayRoundPage() {
               className="rounded-2xl border border-brand-line bg-brand-card p-4 shadow-sm"
             >
               {/* Name + prominent hole score */}
-              <div className="flex items-center justify-between">
-                <span className="font-display text-lg font-bold text-brand-ink">
+              <div className="flex items-center justify-between gap-2">
+                <span className="min-w-0 truncate font-display text-lg font-bold text-brand-ink">
                   {player.name}
                 </span>
                 <div className="text-right leading-none">
@@ -255,12 +296,13 @@ export default function PlayRoundPage() {
                   <button
                     type="button"
                     aria-label={`Remove a stroke for ${player.name}`}
+                    disabled={strokes <= 1}
                     onClick={() =>
                       updateScore(player.id, hole.number, {
                         strokes: Math.max(1, strokes - 1),
                       })
                     }
-                    className="tap-target h-12 w-12 rounded-full border-2 border-brand-line bg-brand-card text-2xl font-bold text-brand-ink active:bg-brand-cream"
+                    className="tap-target h-12 w-12 rounded-full border-2 border-brand-line bg-brand-card text-2xl font-bold text-brand-ink active:bg-brand-cream disabled:opacity-30"
                   >
                     −
                   </button>
@@ -360,8 +402,9 @@ export default function PlayRoundPage() {
                     <button
                       type="button"
                       aria-label={`Remove a ball for ${player.name}`}
+                      disabled={balls <= 0}
                       onClick={() => updateBalls(player.id, -1)}
-                      className="tap-target h-9 w-9 rounded-full border-2 border-brand-line bg-brand-card text-xl font-bold text-brand-ink active:bg-brand-cream"
+                      className="tap-target h-9 w-9 rounded-full border-2 border-brand-line bg-brand-card text-xl font-bold text-brand-ink active:bg-brand-cream disabled:opacity-30"
                     >
                       −
                     </button>
@@ -420,10 +463,19 @@ export default function PlayRoundPage() {
             </li>
           ))}
         </ol>
+        {/* Quiet early exit — you don't have to reach hole 18 to see the
+            results screen (and you can come right back). */}
+        <Link
+          href={`/play/${round.id}/results`}
+          className="mt-3 block text-center text-sm font-semibold text-brand-deepPine"
+        >
+          View results & share card →
+        </Link>
       </section>
 
-      {/* Sticky hole navigation */}
-      <nav className="fixed inset-x-0 bottom-0 mx-auto flex max-w-md items-center gap-3 border-t border-brand-line bg-brand-cream/95 px-4 py-3 backdrop-blur">
+      {/* Sticky hole navigation. Bottom padding respects the iPhone
+          home-indicator area (safe-area inset). */}
+      <nav className="fixed inset-x-0 bottom-0 mx-auto flex max-w-md items-center gap-3 border-t border-brand-line bg-brand-cream/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
         <button
           type="button"
           onClick={() => goToHole(Math.max(0, holeIndex - 1))}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { defaultCourse } from "@/config/courses";
@@ -28,6 +28,32 @@ export default function StartPage() {
 
   const filledPlayers = players.map((p) => p.trim()).filter(Boolean);
   const canStart = groupName.trim().length > 0 && filledPlayers.length > 0;
+
+  // Enter flows down the form: group name → player 1 → player 2 → (adds a
+  // slot) — so a group can be typed in without ever leaving the keyboard.
+  const playersRef = useRef<HTMLDivElement>(null);
+  const [focusLastPlayer, setFocusLastPlayer] = useState(false);
+
+  function focusPlayer(index: number) {
+    playersRef.current?.querySelectorAll("input")[index]?.focus();
+  }
+
+  useEffect(() => {
+    if (!focusLastPlayer) return;
+    focusPlayer(players.length - 1);
+    setFocusLastPlayer(false);
+  }, [focusLastPlayer, players.length]);
+
+  function onPlayerKeyDown(index: number, e: React.KeyboardEvent) {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (index < players.length - 1) {
+      focusPlayer(index + 1);
+    } else if (players[index].trim().length > 0) {
+      addPlayer();
+      setFocusLastPlayer(true);
+    }
+  }
 
   function updatePlayer(index: number, value: string) {
     setPlayers((prev) => prev.map((p, i) => (i === index ? value : p)));
@@ -78,6 +104,12 @@ export default function StartPage() {
         <input
           value={groupName}
           onChange={(e) => setGroupName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              focusPlayer(0);
+            }
+          }}
           placeholder="e.g. The Bachelor Party"
           className="tap-target w-full rounded-2xl border-2 border-brand-ink/10 bg-white px-4 text-lg font-medium outline-none focus:border-brand-primary"
         />
@@ -88,12 +120,13 @@ export default function StartPage() {
         <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
           Players
         </span>
-        <div className="space-y-2">
+        <div ref={playersRef} className="space-y-2">
           {players.map((player, index) => (
             <div key={index} className="flex items-center gap-2">
               <input
                 value={player}
                 onChange={(e) => updatePlayer(index, e.target.value)}
+                onKeyDown={(e) => onPlayerKeyDown(index, e)}
                 placeholder={`Player ${index + 1}`}
                 className="tap-target w-full rounded-2xl border-2 border-brand-ink/10 bg-white px-4 text-lg font-medium outline-none focus:border-brand-primary"
               />
@@ -172,8 +205,9 @@ export default function StartPage() {
         <PrintBlankButton course={course} />
       </div>
 
-      {/* Sticky start button */}
-      <div className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-brand-line bg-brand-cream/95 px-5 py-3 backdrop-blur">
+      {/* Sticky start button. Bottom padding respects the iPhone
+          home-indicator area (safe-area inset). */}
+      <div className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-brand-line bg-brand-cream/95 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
         <button
           type="button"
           onClick={startRound}
