@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { getCourse } from "@/config/courses";
-import { loadRound } from "@/lib/storage";
+import { loadRound, clearActiveRoundId } from "@/lib/storage";
 import {
   standings,
   formatToPar,
@@ -44,17 +44,21 @@ export default function ResultsPage() {
     [round, course],
   );
 
-  // Build the shareable image once the round is loaded.
+  // Build the shareable image once the round is loaded. `cancelled` guards the
+  // async gap: if the page unmounts before the canvas resolves, don't set
+  // state or mint an object URL nothing will revoke.
   useEffect(() => {
     if (!round || !course) return;
+    let cancelled = false;
     let url: string | null = null;
     buildShareImage(round, course, standings(round, course)).then((blob) => {
-      if (!blob) return;
+      if (!blob || cancelled) return;
       setShareBlob(blob);
       url = URL.createObjectURL(blob);
       setShareUrl(url);
     });
     return () => {
+      cancelled = true;
       if (url) URL.revokeObjectURL(url);
     };
   }, [round, course]);
@@ -92,7 +96,7 @@ export default function ResultsPage() {
         <p className="text-sm font-semibold uppercase tracking-wide opacity-80">
           {round.groupName} · final
         </p>
-        <BucketLogo className="mx-auto mt-2 h-16 w-16" />
+        <BucketLogo onDark className="mx-auto mt-2 h-16 w-16" />
         <h1 className="mt-2 font-display text-3xl font-extrabold">
           {isTie
             ? `It's a tie!`
@@ -104,11 +108,11 @@ export default function ResultsPage() {
         </p>
       </div>
 
-      {/* Rounds aren't saved anywhere — nudge a keepsake. */}
+      {/* Rounds live only in this phone's storage — nudge a keepsake. */}
       <p className="mt-4 rounded-2xl border border-brand-line bg-brand-sunshine/20 px-4 py-3 text-center text-sm font-medium text-brand-ink">
-        <span className="font-bold">Heads up —</span> rounds aren&apos;t saved.
-        Screenshot this page, share the card, or download the PDF below to keep
-        your results.
+        <span className="font-bold">Heads up —</span> rounds live only on this
+        phone. Screenshot this page, share the card, or download the PDF below
+        to keep your results.
       </p>
 
       {/* Shareable branded image */}
@@ -230,6 +234,9 @@ export default function ResultsPage() {
         </Link>
         <Link
           href="/"
+          // Done = this round is over — stop offering "Resume" on the
+          // landing page. The round itself stays in storage.
+          onClick={() => clearActiveRoundId()}
           className="tap-target flex flex-1 items-center justify-center rounded-2xl bg-brand-primary px-5 font-bold text-white"
         >
           Done

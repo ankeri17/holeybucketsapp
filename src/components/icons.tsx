@@ -31,13 +31,41 @@ export function LogoLockup({
   );
 }
 
-/** The Holey Buckets logo mark: a bucket with a ball arcing into it. */
-export function BucketLogo({ className }: { className?: string }) {
+/**
+ * The Holey Buckets logo mark: a bucket with a golf flag planted in it and a
+ * ball arcing in.
+ *
+ * `onDark` flips the palette for dark/green surfaces (results hero, share
+ * card): the bucket body goes white and the pole goes white — the default
+ * green-bodied bucket disappears against the green panels it sits on.
+ */
+export function BucketLogo({
+  className,
+  onDark = false,
+}: {
+  className?: string;
+  onDark?: boolean;
+}) {
+  const body = onDark ? "#ffffff" : "var(--fairway-green)";
+  const pole = onDark ? "#ffffff" : "var(--deep-pine)";
+  const ball = onDark ? "var(--sunshine)" : "var(--bucket-blue)";
   return (
     <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-      {/* arc / ball trajectory */}
+      {/* flag pole, planted inside the bucket (bucket drawn over its base) */}
+      <line
+        x1="30"
+        y1="23"
+        x2="30"
+        y2="5.5"
+        stroke={pole}
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      {/* flag */}
+      <path d="M31 4.5 L42.5 8.25 L31 12 Z" fill="var(--penalty-clay)" />
+      {/* arc / ball trajectory into the bucket */}
       <path
-        d="M9 24 Q 17 4 31 9"
+        d="M6 27 Q 12 8 20 11.5"
         fill="none"
         stroke="var(--sunshine)"
         strokeWidth="2.5"
@@ -45,14 +73,11 @@ export function BucketLogo({ className }: { className?: string }) {
         strokeDasharray="1 5"
       />
       {/* ball */}
-      <circle cx="32" cy="9" r="3.4" fill="var(--bucket-blue)" />
+      <circle cx="21.5" cy="12" r="3.2" fill={ball} />
       {/* bucket body */}
-      <path
-        d="M11 17 L37 17 L33 38 Q24 41 15 38 Z"
-        fill="var(--fairway-green)"
-      />
+      <path d="M11 22 L37 22 L33 42 Q24 45 15 42 Z" fill={body} />
       {/* bucket rim (opening) */}
-      <ellipse cx="24" cy="17" rx="13" ry="3.6" fill="var(--deep-pine)" />
+      <ellipse cx="24" cy="22" rx="13" ry="3.6" fill="var(--deep-pine)" />
     </svg>
   );
 }

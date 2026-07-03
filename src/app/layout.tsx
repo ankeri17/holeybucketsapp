@@ -19,17 +19,35 @@ const text = Figtree({
   display: "swap",
 });
 
+const description = `The official digital companion to ${brand.name}. Score a round on your phone or print a scorecard.`;
+
 export const metadata: Metadata = {
+  // metadataBase lets the Open Graph url resolve; siteUrl is the same address
+  // printed on the share card (repoint it in branding.ts when the real
+  // domain is live).
+  metadataBase: new URL(`https://${brand.siteUrl}`),
   title: `${brand.name} — ${brand.tagline}`,
-  description: `The official digital companion to ${brand.name}. Score a round on your phone or print a scorecard.`,
+  description,
+  // Link previews in Messages/Slack/socials. No og:image yet — add a raster
+  // card (1200×630) once the real course photos arrive.
+  openGraph: {
+    title: `${brand.name} — ${brand.tagline}`,
+    description,
+    url: "/",
+    siteName: brand.name,
+    type: "website",
+  },
 };
 
+// No maximum-scale lock: pinch-zoom must stay available (low-vision players
+// rely on it, and iOS ignores the lock anyway). viewport-fit=cover lets the
+// sticky bottom bars pad themselves around the iPhone home indicator
+// (env(safe-area-inset-bottom)).
 export const viewport: Viewport = {
   themeColor: brand.colors.primary,
   width: "device-width",
   initialScale: 1,
-  // Lock zoom so the scoring screen feels like an app, not a web page.
-  maximumScale: 1,
+  viewportFit: "cover",
 };
 
 // Publish the brand palette as CSS custom properties, derived from the one

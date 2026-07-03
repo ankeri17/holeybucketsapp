@@ -17,6 +17,14 @@
 export const DEFAULT_PAR = 3;
 
 /**
+ * Version of the stored Round shape. Bump this (and add a migration in
+ * src/lib/storage.ts) whenever a saved round from an older app version would
+ * no longer parse into today's Round. Rounds live in players' phones long
+ * after the app updates, so the data has to say which shape it's in.
+ */
+export const SCHEMA_VERSION = 1;
+
+/**
  * Scoring formats. The MVP only plays "strokePlay" (lowest total wins), but
  * `format` is a real field from day one so the Phase 2 formats slot in later
  * without reworking the data model.
@@ -114,10 +122,18 @@ export interface HoleScore {
    * not a flag. Defaults to 0.
    */
   penalties?: number;
+  /**
+   * True when the app seeded this score (par, when the group lands on a hole)
+   * and nobody has touched it yet. Cleared on the first real edit. Lets the
+   * scorecard show "assumed par" differently from a score someone entered.
+   */
+  autoFilled?: boolean;
 }
 
 /** A round being played (or finished) by a group. */
 export interface Round {
+  /** Which version of this shape the round was saved with. See SCHEMA_VERSION. */
+  schemaVersion: number;
   /** Stable unique id for this round. */
   id: string;
   /** Which course this round was played on. */
@@ -141,6 +157,12 @@ export interface Round {
    * penalty, or take a penalty without losing a ball.
    */
   balls?: Record<string, number>;
+  /**
+   * Index (0-based) into the course's holes of the hole the group is on, so
+   * a refresh or a reopened phone resumes where play left off. Optional —
+   * older saved rounds don't have it and simply resume at the first hole.
+   */
+  currentHole?: number;
   /** ISO timestamp of when the round was started. */
   createdAt: string;
 }

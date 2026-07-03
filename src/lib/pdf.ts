@@ -1,3 +1,5 @@
+import type { jsPDF } from "jspdf";
+import type { autoTable as AutoTableFn, CellHookData } from "jspdf-autotable";
 import { brand } from "@/config/branding";
 import { holePar } from "@/lib/course";
 import { getHoleScore, netStrokes, playerTotal } from "@/lib/scoring";
@@ -62,7 +64,12 @@ function formatDate(d: Date): string {
 }
 
 /** Draw the branded header band; returns the Y to start the table at. */
-function drawHeader(doc: any, course: Course, subtitle: string, dateStr: string): number {
+function drawHeader(
+  doc: jsPDF,
+  course: Course,
+  subtitle: string,
+  dateStr: string,
+): number {
   const pageW = doc.internal.pageSize.getWidth();
   doc.setFillColor(...hexToRgb(brand.colors.primary));
   doc.rect(0, 0, pageW, 70, "F");
@@ -90,14 +97,25 @@ function drawHeader(doc: any, course: Course, subtitle: string, dateStr: string)
   return 110;
 }
 
-async function newDoc(): Promise<{ doc: any; autoTable: any }> {
+async function newDoc(): Promise<{
+  doc: jsPDF;
+  autoTable: typeof AutoTableFn;
+}> {
   const { jsPDF } = await import("jspdf");
   const autoTable = (await import("jspdf-autotable")).default;
   const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "letter" });
   return { doc, autoTable };
 }
 
-function renderTable(doc: any, autoTable: any, head: string[], body: (string | number)[][], startY: number) {
+function renderTable(
+  doc: jsPDF,
+  autoTable: typeof AutoTableFn,
+  head: string[],
+  body: (string | number)[][],
+  startY: number,
+  /** Body cells (as "rowIndex:columnIndex") to render italic — assumed par. */
+  italicCells?: Set<string>,
+) {
   autoTable(doc, {
     head: [head],
     body,
@@ -106,15 +124,28 @@ function renderTable(doc: any, autoTable: any, head: string[], body: (string | n
     styles: { halign: "center", fontSize: 9, cellPadding: 4, lineColor: hexToRgb(brand.colors.line) },
     headStyles: { fillColor: hexToRgb(brand.colors.primary), textColor: [255, 255, 255], fontStyle: "bold" },
     columnStyles: { 0: { halign: "left", fontStyle: "bold", cellWidth: 80 } },
-    // Shade the label rows (Par) so the card reads like a real scorecard.
-    didParseCell: (data: any) => {
-      const label = data.row.raw?.[0];
+    didParseCell: (data: CellHookData) => {
+      // Shade the label rows (Par) so the card reads like a real scorecard.
+      const label = Array.isArray(data.row.raw) ? data.row.raw[0] : undefined;
       if (label === "Par") {
         data.cell.styles.fillColor = hexToRgb(brand.colors.cream);
         data.cell.styles.fontStyle = "bold";
       }
+      if (
+        data.section === "body" &&
+        italicCells?.has(`${data.row.index}:${data.column.index}`)
+      ) {
+        data.cell.styles.fontStyle = "italic";
+        data.cell.styles.textColor = hexToRgb(brand.colors.stone);
+      }
     },
   });
+}
+
+/** Where the last table ended (jspdf-autotable records it on the doc). */
+function tableEndY(doc: jsPDF, fallback: number): number {
+  const withTable = doc as unknown as { lastAutoTable?: { finalY?: number } };
+  return withTable.lastAutoTable?.finalY ?? fallback;
 }
 
 /** Blank scorecard to print and fill in by hand before a round. */
@@ -149,18 +180,37 @@ export async function downloadResultsScorecard(round: Round, course: Course): Pr
   );
   const { front, back, head, parRow } = scorecardSkeleton(course);
 
-  const playerRows = round.players.map((p) => {
-    const cellFor = (holeNumber: number) => {
+  // Assumed-par (auto-filled) scores print italic + gray, same as on screen,
+  // so a printed card can't pass them off as entered scores.
+  const italicCells = new Set<string>();
+
+  const playerRows = round.players.map((p, playerIndex) => {
+    const rowIndex = playerIndex + 1; // body row 0 is the Par row
+    const cellFor = (holeNumber: number, columnIndex: number) => {
       const s = getHoleScore(round, p.id, holeNumber);
+      if (s?.autoFilled) italicCells.add(`${rowIndex}:${columnIndex}`);
       return s ? netStrokes(s) : "";
     };
-    const frontCells = front.map((h) => cellFor(h.number));
-    const backCells = back.map((h) => cellFor(h.number));
+    // Columns: 0 = name, then front nine, OUT, back nine, IN, Tot.
+    const frontCells = front.map((h, i) => cellFor(h.number, 1 + i));
+    const backCells = back.map((h, i) => cellFor(h.number, front.length + 2 + i));
     const out = frontCells.reduce<number>((s, v) => s + (typeof v === "number" ? v : 0), 0);
     const inn = backCells.reduce<number>((s, v) => s + (typeof v === "number" ? v : 0), 0);
     return [p.name, ...frontCells, out, ...backCells, inn, playerTotal(round, p.id)];
   });
 
-  renderTable(doc, autoTable, head, [parRow, ...playerRows], startY);
+  renderTable(doc, autoTable, head, [parRow, ...playerRows], startY, italicCells);
+
+  if (italicCells.size > 0) {
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(9);
+    doc.setTextColor(...hexToRgb(brand.colors.stone));
+    doc.text(
+      "Italic scores are assumed par — the hole was opened but nobody adjusted the score.",
+      40,
+      tableEndY(doc, startY) + 18,
+    );
+  }
+
   doc.save(`Holey Buckets - ${round.groupName} scorecard.pdf`);
 }
