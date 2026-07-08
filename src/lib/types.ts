@@ -97,6 +97,51 @@ export interface Course {
   holes: Hole[];
 }
 
+/** The two sponsorship placements sold today. */
+export type SponsorTier =
+  | "hole" // "Hole presented by …" on one hole (app + scorecard)
+  | "digital"; // rotating app slot + the printed "Thanks to our sponsors" row
+
+/**
+ * Whether a sponsorship is currently running. Flipping a sponsor to "lapsed"
+ * is the manual kill switch: it removes them from EVERY placement (app and
+ * PDF) with no other edits — the stand-in for payment webhooks until Phase 2.
+ */
+export type SponsorStatus = "active" | "lapsed";
+
+/**
+ * A sponsor of a course. Like a course, a sponsor is **data**, never
+ * hardcoded — sponsors live in src/config/sponsors/, scoped per course, and
+ * every placement renders from these objects.
+ */
+export interface Sponsor {
+  /** Stable unique slug, e.g. "osceola-hardware". */
+  id: string;
+  /** Display name, e.g. "Osceola Hardware". */
+  name: string;
+  /**
+   * Path to the logo, e.g. "/sponsors/osceola-hardware.png" (files live in
+   * /public/sponsors/). Optional — a sponsor with no logo (or a broken file)
+   * renders as their styled name instead; a missing image never breaks a page.
+   */
+  logoUrl?: string;
+  /** Which placement this sponsor bought. */
+  tier: SponsorTier;
+  /** "active" shows everywhere; "lapsed" removes them everywhere. */
+  status: SponsorStatus;
+  /**
+   * The `number` of the hole they sponsor. Required when tier is "hole" and
+   * must match a real hole in the course data; at most ONE active hole sponsor
+   * per hole (validated loudly at build/load in src/config/sponsors/).
+   */
+  holeId?: number;
+  /** Optional website — sponsor placements in the app link out to it. */
+  url?: string;
+  /** Term dates (ISO, e.g. "2026-05-01"). Informational only in the MVP. */
+  termStart?: string;
+  termEnd?: string;
+}
+
 /** A player in a round. MVP: a name only — no accounts, no logins. */
 export interface Player {
   /** A stable id generated when the player is added (so scores key off it). */

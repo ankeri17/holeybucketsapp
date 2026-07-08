@@ -106,10 +106,10 @@ Deviations and what they mean:
   build command `npm run build`, publish directory `.next`, plugin
   `@netlify/plugin-nextjs`. Zero dashboard config.
 - **Every push to `main` triggers an automatic rebuild + publish.** There is no staging
-  environment, no preview gate you must pass, and — verified 2026-07-02 — **no other CI
-  of any kind** (`.github/` does not exist; no test runner is installed). The Netlify
-  build (which includes lint + type-check, §2) is the only automated gate between a
-  merge and production.
+  environment and no preview gate you must pass. Since 2026-07-03 a GitHub Actions
+  workflow (`.github/workflows/ci.yml`: typecheck, lint, `npm test` via vitest, build)
+  runs on every PR and push to `main` — but Netlify deploys independently of it; the
+  Netlify build (lint + type-check, §2) is still the only gate that blocks production.
 - Live URL: **https://holeybuckets.netlify.app** (as of 2026-07-02; matches
   `siteUrl` in `src/config/branding.ts`, which is printed on the share card). A real
   custom domain is planned at launch — when it changes, `branding.siteUrl` must be
@@ -193,7 +193,7 @@ Re-verify before trusting, if time has passed:
 | Build passes; route table matches §3 | `npm run build` and diff the route table |
 | lint config is next/core-web-vitals | `cat .eslintrc.json` |
 | Netlify build/publish/plugin | `cat netlify.toml` |
-| Still no CI beyond Netlify | `ls .github 2>&1` (should not exist) |
+| CI workflow present (since 2026-07-03) | `ls .github/workflows` (ci.yml) |
 | Still no env usage | `ls -a \| grep '^\.env'` and `grep -rn "process.env" src/` (both empty) |
 | Live URL / siteUrl | `grep siteUrl src/config/branding.ts` and open https://holeybuckets.netlify.app |
 | Fonts still build-time via next/font | `grep -n "next/font" src/app/layout.tsx` |

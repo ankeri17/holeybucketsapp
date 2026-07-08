@@ -16,10 +16,12 @@ description: >-
 
 # Holey Buckets — Validation & QA runbook
 
-There is **no test suite, no test runner, and no CI beyond the Netlify build** in this
-repo (verified 2026-07-02: no `.github/` dir, no test deps in package.json). QA is a
-manual protocol plus one smoke script — this skill IS the protocol. Repo root:
-the directory containing `package.json` with `"name": "holey-buckets-app"`.
+Since 2026-07-03 (commit 8b9f680) the repo has a **vitest unit suite** (`npm test`,
+`src/**/*.test.ts`) and **GitHub Actions CI** (`.github/workflows/ci.yml`: typecheck,
+lint, test, build on every PR and push to `main`). Those cover the pure lib logic —
+everything RENDERED (screens, PDFs, share card, real-device behavior) is still
+covered only by the manual protocol in this skill. Repo root: the directory
+containing `package.json` with `"name": "holey-buckets-app"`.
 
 ## When to use this skill
 
@@ -61,17 +63,19 @@ ship until someone observes them.
 
 **Minimum bar for EVERY change, no exceptions:** `npm run build` passes (it includes
 ESLint + the TypeScript type check — you'll see a "Linting and checking validity of
-types" phase). **Additionally mandatory** for anything touching
+types" phase) AND `npm test` passes (vitest, since 2026-07-03). **Additionally
+mandatory** for anything touching
 `src/lib/scoring.ts`, `src/lib/course.ts`, or `src/lib/types.ts`: run
 `scripts/scoring-smoke.mjs` (section 3) and see `ALL CASES PASS`.
 
-Expected tail of a good build (as of 2026-07-02 — 6 routes; ○ static, ƒ dynamic):
+Expected tail of a good build (as of 2026-07-08 — 7 routes; ○ static, ƒ dynamic):
 
 ```
 Route (app)                              Size     First Load JS
 ┌ ○ /                                    ...
 ├ ○ /_not-found                          ...
 ├ ○ /course                              ...
+├ ○ /icon.svg                            ...
 ├ ƒ /play/[roundId]                      ...
 ├ ƒ /play/[roundId]/results              ...
 └ ○ /start                               ...
@@ -82,7 +86,8 @@ finding, not noise.
 
 ## 2. The verification runbook (run top to bottom; skip steps only per the table in §2.1)
 
-1. **Build.** From repo root: `npm run build`. Must exit 0 with the 6-route table above.
+1. **Build + tests.** From repo root: `npm run build` (must exit 0 with the 7-route
+   table above) and `npm test` (all vitest suites pass).
    Trap: the build fetches Google Fonts at build time — a no-network build fails for
    reasons unrelated to your change (see holey-buckets-build-and-run).
 2. **Scoring smoke** (if `src/lib/scoring.ts|course.ts|types.ts` touched):
@@ -117,6 +122,7 @@ finding, not noise.
 | `src/config/branding.ts` | 1, 3, 6, 7 (brand feeds PDFs + share card too) |
 | `src/config/courses/*` | 1, 3, 6, 7 (par row, hole count, names flow into the PDFs; the share card draws `course.name · location`) |
 | `src/lib/storage.ts` / Round shape | 1, 3, 4 + holey-buckets-round-data-safety migration checklist |
+| `src/config/sponsors/*`, `src/lib/sponsors.ts`, `src/components/sponsors/*` | 1, 3 (home + a sponsored hole + results), 6 (sponsor footnote + sponsors strip print on both cards) |
 | Copy/styling only | 1, 3 |
 | Feature PR of any kind | all applicable + 8, 9 |
 
@@ -261,6 +267,11 @@ Which screens to check per change class:
    `Holey Buckets - <group name> scorecard.pdf`. Check: subtitle is the group name, date
    is the **round's** date (createdAt), one row per player with NET per-hole scores,
    OUT/IN/Tot columns matching the on-screen Scorecard grid exactly.
+3. Sponsor rows (since 2026-07-08, both cards): with active sponsors configured
+   (`src/config/sponsors/`), expect a "Hole N presented by <name>" footnote line and a
+   "THANKS TO OUR SPONSORS" strip with the active digital sponsors' logos (or bold
+   names when a logo fails to load) under the table. With ZERO active sponsors both
+   must be entirely absent — no empty frames.
 
 **Share card** (1080×1080 canvas PNG on the results page):
 
@@ -282,20 +293,20 @@ Round state lives in `localStorage` (`holeybuckets:round:<id>`,
 safe-migration checklist are owned by **holey-buckets-round-data-safety** — use that
 skill; do not improvise writes to localStorage during QA.
 
-## 9. CANDIDATE (not built): a real test suite
+## 9. The test suite (vitest — BUILT 2026-07-03) and what's still candidate
 
-Honest status as of 2026-07-02: there are **no** tests and no test deps. If/when one is
-added, the natural shape is:
+The vitest half of the original proposal shipped on 2026-07-03 (commit 8b9f680,
+"Harden the MVP"): `vitest` is a devDependency, `npm test` runs `src/**/*.test.ts`
+(scoring, course, round, storage — plus sponsors since 2026-07-08), and the CI
+workflow runs it on every PR. The smoke script (`scoring-smoke.mjs`) still exists and
+still runs independently of vitest.
 
-- **vitest** for `src/lib/*` unit tests — the smoke script's cases are the ready-made
-  first test file; scoring.ts is pure and dependency-light.
-- **playwright** for the tie-test and reconciliation flows as browser tests.
-
-Both are **new devDependencies**, and dependency additions are gated: pre-flag them and
-go through **holey-buckets-change-control** (the same policy that admitted jsPDF in
-PR #13 and declined a QR library in PR #11). Do not present a test suite as existing,
-and do not add these deps as a side effect of another change. Until then, this runbook
-plus `scoring-smoke.mjs` is the whole QA story.
+Still CANDIDATE (not built): **playwright** browser tests for the tie-test and
+reconciliation flows. It would be a new devDependency — pre-flag it and go through
+**holey-buckets-change-control** (the policy that admitted jsPDF in PR #13 and
+declined a QR library in PR #11). Unit tests do NOT replace the rendered-surface
+steps of this runbook — 390px renders, PDFs, share card, and the founder device
+pass remain manual.
 
 ## Provenance and maintenance
 
@@ -309,10 +320,10 @@ Re-verification commands (run from repo root) for anything that may drift:
 
 | Claim | Check |
 |---|---|
-| Still no test runner / CI | `ls .github 2>/dev/null; grep -E '"(test|vitest|jest|playwright)"' package.json` → nothing |
+| Test suite + CI present | `ls .github/workflows; grep -E '"(test|vitest)"' package.json` → ci.yml; vitest + test script. `npm test` → all suites pass |
 | Smoke script still passes | `node .claude/skills/holey-buckets-validation-and-qa/scripts/scoring-smoke.mjs` |
 | tsc still a devDep | `node_modules/.bin/tsc --version` (5.9.x installed against `"typescript": "^5.5.3"` as of 2026-07-02) |
-| Route list unchanged | `npm run build` → 6-route table in §1 |
+| Route list unchanged | `npm run build` → 7-route table in §1 |
 | Scoring exports unchanged | `grep -n "export function" src/lib/scoring.ts` → netStrokes, getHoleScore, holesScored, playerTotal, playerToPar, standings, playerBalls, totalBalls, winners, joinNames, formatToPar |
 | Tie hero string | `grep -n "It's a tie" "src/app/play/[roundId]/results/page.tsx"` |
 | Share card top-5 + TIE label | `grep -n "slice(0, 5)\|\"TIE\"" src/lib/shareImage.ts` |

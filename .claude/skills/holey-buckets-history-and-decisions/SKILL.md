@@ -57,7 +57,8 @@ through `holey-buckets-change-control`.
 
 All 15 PRs: authored by ankeri17, merged same-day into `main`, full bodies on GitHub
 (`https://github.com/ankeri17/holeybucketsapp/pull/<N>`). PR bodies are the project's
-decision record — each carries a "Verified" section (there is no test suite; see
+decision record — each carries a "Verified" section (a vitest suite exists since
+2026-07-03, but rendered surfaces are verified manually; see
 `holey-buckets-validation-and-qa`).
 
 | PR | Date | What changed | Decision(s) embedded | Status |

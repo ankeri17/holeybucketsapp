@@ -228,7 +228,7 @@ silently, and do not "fix" them without going through
 
 | # | Weak point | Detail |
 |---|---|---|
-| 1 | No tests, no CI | No test runner dep, no `.github/` dir. QA = `npm run build` (lint + type-check) + the manual protocol (see `holey-buckets-validation-and-qa`). Ties shipped broken until real-device play (PR #14). |
+| 1 | Thin automated coverage (UPDATED 2026-07-08) | Since 2026-07-03 (commit 8b9f680) there IS a vitest unit suite (`npm test`) and a GitHub Actions CI (typecheck/lint/test/build). But nothing rendered is covered — screens, PDFs, share card remain manual QA (see `holey-buckets-validation-and-qa`). Ties shipped broken until real-device play (PR #14). |
 | 2 | No analytics/telemetry/error boundary | Nothing measured, verified by grep. The share→visit→booking growth loop is unmeasured (see `holey-buckets-growth-engine`). |
 | 3 | Single-device rounds | localStorage only: a round is unrecoverable from another phone, after browser-data clear, or in a different browser. Phase 2 (Invariant 3) is the fix. |
 | 4 | No course-selection UI | `/start` imports `defaultCourse` directly; a second course in the registry would be unreachable from the UI. |
@@ -264,4 +264,4 @@ Re-verify before relying on volatile facts:
 | Format availability | `grep -n "available: true" src/lib/formats.ts` | strokePlay only |
 | bookingCta still unused | `grep -rn "bookingCta" src \| grep -v branding.ts` | no hits (until Milestone 7 lands) |
 | Next still pinned | `grep -n '"next"' package.json` | `"next": "14.2.35"` (exact, no caret) |
-| Still no tests/CI | `ls .github 2>&1; grep -in "test" package.json` | no such dir; no test script |
+| Tests + CI present (since 2026-07-03) | `ls .github/workflows; grep -in '"test"' package.json` | ci.yml; a vitest test script |

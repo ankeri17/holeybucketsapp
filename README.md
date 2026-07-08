@@ -21,8 +21,11 @@ The complete MVP play loop, all running on the player's phone with no backend:
 the landing page, a course preview, the start-a-round flow, the scoring screen
 (with chip-in bonus, penalty counter, and per-ball tracking), a live
 leaderboard, branded results with a shareable image, and PDF scorecards.
+Sponsor placements are in too: a "Hole presented by" band on sponsored holes, a
+rotating sponsor slot on the home and results screens, and sponsor credits on
+the printed scorecards (sample sponsors for now).
 
-## The two files you'll most likely want to edit
+## The three files you'll most likely want to edit
 
 You don't need to be a developer to change these:
 
@@ -33,6 +36,11 @@ You don't need to be a developer to change these:
    hazards, notes). It's the one file to edit to set up the real course; the
    values in there now are placeholders until the owner's worksheet arrives.
    Dropping in the real layout is a one-file change — nothing else moves.
+3. **`src/config/sponsors/osceola.ts`** — The Gray Duck's sponsors. Adding a
+   sponsor = one block in this file + their logo dropped into
+   `public/sponsors/`. When a sponsor stops paying, change their `status` to
+   `"lapsed"` and that one edit removes them from the app AND the printed
+   scorecards. The sponsors in there now are made-up samples.
 
 ## Run it on your computer
 
@@ -98,6 +106,8 @@ Things to do before pointing real players at this:
 - [ ] Point `siteUrl` in `src/config/branding.ts` at the real domain — it's
       baked into every shared result image, permanently.
 - [ ] Set the real booking/contact URL in `bookingCta` (used by Milestone 7).
+- [ ] Replace the sample sponsors in `src/config/sponsors/osceola.ts` with real
+      ones (or set them all to `"lapsed"` to launch sponsor-free).
 - [ ] Confirm the house rules above with the owner — especially the
       zero-score chip-in and default-to-par behaviors.
 
@@ -128,7 +138,7 @@ terminal to deploy:
 1. ✅ Scaffold + deploy a near-empty app to Netlify.
 2. ✅ Course data model + placeholder Osceola course from config (view at `/course`).
 3. ✅ Start-a-round flow (group name, add players, pick format).
-4. ✅ Scoring screen (big +/−, bucket-chip toggle, foliage penalty, live totals).
+4. ✅ Scoring screen (big +/−, bucket-chip toggle, penalty counter, live totals).
 5. ✅ Branded results + final scorecard + shareable image.
 6. ✅ PDF scorecard generator (blank + completed round).
 7. ⬜ Email capture + booking link + brand polish.

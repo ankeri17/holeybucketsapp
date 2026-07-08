@@ -22,11 +22,12 @@ comments, the merged PR bodies on GitHub, and this skill library. If you write
 prose anywhere in this project, this skill tells you what voice to use, what must
 stay true, and which documents you are obligated to keep current.
 
-**Key term — "founder-editable":** `src/config/branding.ts` and
-`src/config/courses/*.ts` are edited directly by the owner (Erin), who is NOT a
-developer. The comments in those files are her only manual. House rule
-"founder-editable stays sacred" (see holey-buckets-change-control for the gate):
-those files must remain editable by a non-developer at all times.
+**Key term — "founder-editable":** `src/config/branding.ts`,
+`src/config/courses/*.ts`, and (since 2026-07-08) `src/config/sponsors/*.ts` are
+edited directly by the owner (Erin), who is NOT a developer. The comments in those
+files are her only manual. House rule "founder-editable stays sacred" (see
+holey-buckets-change-control for the gate): those files must remain editable by a
+non-developer at all times.
 
 ## When to use this skill / when NOT to
 
@@ -47,6 +48,7 @@ those files must remain editable by a non-developer at all times.
 | README | `README.md` | The founder (plain English) | Milestone ships; any command/path/claim changes |
 | Branding how-to comments | `src/config/branding.ts` | The founder | Any field added/changed in that file |
 | Course how-to comments | `src/config/courses/osceola.ts` (and future courses) | The founder | Any Hole/Course field added/changed |
+| Sponsor how-to comments | `src/config/sponsors/osceola.ts` (and future courses) | The founder | Any Sponsor field added/changed; when real sponsors replace the SAMPLE data |
 | Code header comments | Top of most `src/**` files | Next engineer/model | Module's intent or contract changes |
 | PR bodies | GitHub, merged PRs #1–#15 (2026-06-26/27) and onward | Founder + future archaeologist | Every PR — **the PR body IS the design-history archive**; there are no other design docs |
 | Skill library | `.claude/skills/*/SKILL.md` | Zero-context successor (human or model) | A fact a skill states drifts — fix in the SAME PR |
@@ -65,10 +67,11 @@ a developer to change these"). Its section contract, verified 2026-07-02:
    game" credit with the per-course host note.
 2. **Status callout** (blockquote) — which milestone the app is at.
 3. **"What's here so far"** — one paragraph of current state.
-4. **"The two files you'll most likely want to edit"** — THE founder contract:
-   numbered list naming exactly `src/config/branding.ts` and
-   `src/config/courses/osceola.ts` with what each controls. Never remove or
-   bury this section; if a third founder-editable file ever exists, extend it.
+4. **"The three files you'll most likely want to edit"** — THE founder contract:
+   numbered list naming exactly `src/config/branding.ts`,
+   `src/config/courses/osceola.ts`, and (since 2026-07-08)
+   `src/config/sponsors/osceola.ts` with what each controls. Never remove or
+   bury this section; if another founder-editable file ever exists, extend it.
 5. **"Run it on your computer"** — Node 18+, then `npm install` / `npm run dev`,
    open <http://localhost:3000>. These commands must stay copy-paste true
    (they match `package.json` scripts as of 2026-07-02).
@@ -79,12 +82,10 @@ a developer to change these"). Its section contract, verified 2026-07-02:
 8. **"Roadmap (build order)"** — 8 numbered checkboxes. ✅ 1–6, ⬜ 7 (email
    capture + booking link + brand polish), ⬜ 8 (PWA + offline), as of 2026-07-02.
 
-**Known drift, as of 2026-07-02 (a docs-only fix waiting for its PR):** the
-Status callout still reads "Milestone 1 — scaffolded app…" and "What's here so
-far" still says "near-empty", while the roadmap correctly ticks M1–M6. Roadmap
-item 4 also still says "foliage penalty" (renamed to a penalties counter in
-PR #9). If you touch the README, fix these; keep the fix in a docs-only PR or
-ride along with a milestone PR.
+**Known drift: RESOLVED.** The 2026-07-02 drift (Status callout stuck at
+"Milestone 1", "near-empty" description) was fixed in the 2026-07-03 "Harden the
+MVP" commit (8b9f680); the last residue (roadmap item 4's "foliage penalty"
+wording) was fixed 2026-07-08 in the sponsor-placements PR.
 
 ### README maintenance checklist (run when a milestone ships or paths change)
 
@@ -217,7 +218,8 @@ Rules:
 
 ## 5. Writing rules for founder-editable files (sacred)
 
-When touching `src/config/branding.ts` or `src/config/courses/*.ts`:
+When touching `src/config/branding.ts`, `src/config/courses/*.ts`, or
+`src/config/sponsors/*.ts`:
 
 1. **Never remove or shorten the how-to-edit comment blocks** — the banner
    header ("This is the ONE file to edit…" / "👉 This is the file to edit to

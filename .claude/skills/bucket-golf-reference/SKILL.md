@@ -212,8 +212,9 @@ implemented**; building one is a behavior change that goes through
 | Difficulty pips formula | `src/app/course/page.tsx` : `DifficultyMeter` |
 | NET per-hole numbers on the PDF scorecard | `src/lib/pdf.ts` : `downloadResultsScorecard` |
 
-There is **no test suite** covering any of this — verification is manual
-(hand-check the §2 table; see `holey-buckets-validation-and-qa`).
+Since 2026-07-03, `src/lib/scoring.test.ts` (vitest, `npm test`) covers the rule
+math; rendered surfaces are still verified manually (hand-check the §2 table; see
+`holey-buckets-validation-and-qa`).
 
 ## Provenance and maintenance
 

@@ -241,9 +241,10 @@ The three real failure classes for THIS repo:
 3. **Lint errors**: `next lint` config is `.eslintrc.json` extending
    `next/core-web-vitals`. Run `npm run lint` alone to iterate faster than full builds.
 
-There is NO test suite and NO CI beyond the Netlify build (verified: no
-`.github/` directory, no test deps in `package.json`) — a green build is the
-entire automated gate.
+Since 2026-07-03 there is a vitest suite (`npm test`) and a GitHub Actions CI
+(`.github/workflows/ci.yml`) — run `npm test` when triaging lib-level suspicions.
+Rendered surfaces are still uncovered; a green build + tests is the entire
+automated gate.
 
 ## Case 7: PDF button does nothing / errors {#case-7}
 
@@ -352,6 +353,6 @@ Re-verify before trusting, if the repo has moved past aa4c527:
 | Share fallback logic | `grep -n -B2 -A8 "canShare" src/lib/shareImage.ts` |
 | Netlify contract | `cat netlify.toml` |
 | Route list & build phases | `npm run build` (expect 6 routes; play routes dynamic) |
-| Still no tests/CI | `ls .github 2>/dev/null; grep -c test package.json` |
+| Tests + CI present (since 2026-07-03) | `ls .github/workflows; grep -c test package.json` |
 | bookingCta still unused | `grep -rn "bookingCta" src/ --include="*.tsx"` (expect no matches) |
 | Live URL | `grep -n "siteUrl" src/config/branding.ts` |

@@ -1,6 +1,6 @@
 ---
 name: holey-buckets-config-catalog
-description: Catalog of every configuration axis in the Holey Buckets app — branding.ts fields and colors, Course/Hole data fields, FORMATS availability flags, DEFAULT_PAR — with defaults, current values, exactly which code consumes each one, production-vs-scaffolded status, and step-by-step checklists to add a course, add a field, or change a brand color. Use when editing or auditing any config value, adding a new course, flipping a format flag, rebranding, or answering "where is X configured / who reads this field / is this used yet?". Do NOT use for what the fields mean in bucket-golf terms (see bucket-golf-reference), for why config stays founder-editable or how to get a change approved (see holey-buckets-change-control), or for build/deploy commands (see holey-buckets-build-and-run).
+description: Catalog of every configuration axis in the Holey Buckets app — branding.ts fields and colors, Course/Hole data fields, per-course sponsors, FORMATS availability flags, DEFAULT_PAR — with defaults, current values, exactly which code consumes each one, production-vs-scaffolded status, and step-by-step checklists to add a course, add a field, or change a brand color. Use when editing or auditing any config value, adding a new course, flipping a format flag, rebranding, or answering "where is X configured / who reads this field / is this used yet?". Do NOT use for what the fields mean in bucket-golf terms (see bucket-golf-reference), for why config stays founder-editable or how to get a change approved (see holey-buckets-change-control), or for build/deploy commands (see holey-buckets-build-and-run).
 ---
 
 # Holey Buckets — Configuration Catalog
@@ -8,13 +8,15 @@ description: Catalog of every configuration axis in the Holey Buckets app — br
 Every knob in the app, what it currently says, who reads it, and how to change it safely.
 Verified against the repo at commit `aa4c527` on 2026-07-02. All paths are relative to repo root.
 
-**The entire config surface is 5 files:**
+**The entire config surface is 7 files:**
 
 | File | What it configures | Founder-editable? |
 |---|---|---|
 | `src/config/branding.ts` | Name, tagline, umbrella brand, site URL, all colors, booking CTA | YES — designed for a non-developer |
 | `src/config/courses/osceola.ts` | The flagship course ("The Gray Duck") — all hole data | YES — designed for a non-developer |
+| `src/config/sponsors/osceola.ts` | The Gray Duck's sponsors (hole + digital tiers, the `lapsed` kill switch) — SAMPLE data as of 2026-07-08 | YES — designed for a non-developer |
 | `src/config/courses/index.ts` | Course registry: `courses[]`, `defaultCourse`, `getCourse(id)` | Engineer only |
+| `src/config/sponsors/index.ts` | Sponsor registry: `sponsorsByCourse`, `getSponsors(courseId)`, loud build/load validation | Engineer only |
 | `src/lib/formats.ts` | `FORMATS` catalog (with `available` flags), `DEFAULT_FORMAT` | Engineer only, via change control |
 | `src/lib/types.ts` | `DEFAULT_PAR` + the `Course`/`Hole`/`Round` type contract | Engineer only, via change control |
 
@@ -195,7 +197,21 @@ the trap:
    **holey-buckets-round-data-safety** first.
 5. `npm run build` must pass; render the touched screens at 390px.
 
-### 5c. Change a brand color
+### 5c. Add, lapse, or replace a sponsor (added 2026-07-08)
+
+1. Everything the founder needs is in `src/config/sponsors/osceola.ts` (or the future course's
+   own sponsor file) — the file's comment block is the manual. Adding a sponsor = one object in
+   that file + one logo dropped in `/public/sponsors/`. Nothing else.
+2. Kill switch: set `status: "lapsed"` — that ONE edit removes the sponsor from every placement
+   (hole band, rotating slots, scorecard footnote, both PDFs). No other change needed or allowed.
+3. Guardrails enforced at build/load (`src/config/sponsors/index.ts` throws): one active hole
+   sponsor per hole, `holeId` must exist on the course, unique sponsor ids. A bad config FAILS
+   `npm run build` on purpose.
+4. A missing/broken logo never breaks a screen — the sponsor's name renders as styled text.
+5. Full field reference + consumers: section 6 below. Placement components live in
+   `src/components/sponsors/`; PDF placements in `drawSponsorFooters()` (`src/lib/pdf.ts`).
+
+### 5d. Change a brand color
 
 1. Edit the hex in `src/config/branding.ts` — the ONLY file to touch (`tailwind.config.ts` reads
    it; do not edit colors there).
@@ -209,6 +225,42 @@ the trap:
 3. Respect the guardrails: sunshine backgrounds keep ink text; penalty stays a non-red hue with
    an explicit +/− sign (colorblind-safe). Contrast-check any darkened/lightened neutral.
 4. `npm run build`; eyeball landing, course, start, play, results at 390px.
+
+---
+
+## 6. Sponsors (src/config/sponsors/) — added 2026-07-08
+
+Sponsors follow the courses-as-data pattern exactly: per-course data files + a registry, no
+component knows a specific sponsor. Types live in `src/lib/types.ts` (`Sponsor`, `SponsorTier`,
+`SponsorStatus`); pure helpers in `src/lib/sponsors.ts` (`activeSponsors`, `activeHoleSponsors`,
+`activeDigitalSponsors`, `holeSponsor`, `validateSponsors`).
+
+### Sponsor fields
+
+| Field | Required? | Notes |
+|---|---|---|
+| `id` | required | unique slug; duplicates fail the build |
+| `name` | required | also the styled-text fallback when the logo is missing/broken |
+| `logoUrl` | optional | `/sponsors/<file>.png` in `/public/sponsors/` |
+| `tier` | required | `"hole"` or `"digital"` |
+| `status` | required | `"active"` shows everywhere; `"lapsed"` is the kill switch (hides everywhere) |
+| `holeId` | required for `tier: "hole"` | the hole's `number`; must exist on the course; one ACTIVE sponsor per hole |
+| `url` | optional | placements link out (`target="_blank" rel="noopener"`), app only |
+| `termStart` / `termEnd` | optional | informational only in the MVP (no date logic reads them) |
+
+### Placements (who consumes sponsor data)
+
+| Placement | Component / function | Where it shows |
+|---|---|---|
+| Hole band ("Hole presented by …") | `src/components/sponsors/HoleSponsorBand.tsx` | scoring screen, under the hole header, sponsored hole only |
+| Rotating digital slot | `src/components/sponsors/DigitalSponsorSlot.tsx` | home + results; one random active digital sponsor per page load |
+| Scorecard footnote ("Hole 7 presented by …") | `src/components/sponsors/ScorecardSponsorRow.tsx` | results page, under the scorecard grid |
+| PDF footnote + "THANKS TO OUR SPONSORS" strip | `drawSponsorFooters()` in `src/lib/pdf.ts` | both PDFs (blank + results), under the table |
+
+Zero active sponsors → all four render nothing (no placeholders). Sample data (4 made-up
+sponsors, one lapsed) ships as of 2026-07-08 and is labeled SAMPLE in the config file.
+Not built (deliberate, 2026-07-08 change request): Stripe/webhooks, admin UI, self-serve
+signup, click tracking (hook locations documented in `REVIEW.md`).
 
 ---
 
@@ -233,3 +285,6 @@ Flags and "unused" claims drift. Re-verify before relying on them:
 | Course registry contents | `grep -n "courses: Course\[\]\|defaultCourse" src/config/courses/index.ts` | `[osceola]`, default = osceola |
 | Placeholder assets still in place | `ls public/placeholder-tee.svg public/courses/grayduck/` | both exist (hero.svg) |
 | Current siteUrl | `grep -n "siteUrl" src/config/branding.ts` | `holeybuckets.netlify.app` (until the real domain) |
+| Sponsor data still SAMPLE | `grep -n "SAMPLE" src/config/sponsors/osceola.ts` | banner + per-sponsor labels present (delete when real sponsors land) |
+| Sponsor registry contents | `grep -n "sponsorsByCourse" src/config/sponsors/index.ts` | `{ osceola: osceolaSponsors }` |
+| termStart/termEnd still informational | `grep -rn "termStart\|termEnd" src \| grep -v config/sponsors \| grep -v types.ts` | no output (no date logic) |
