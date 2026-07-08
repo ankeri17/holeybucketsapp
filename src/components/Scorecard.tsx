@@ -1,10 +1,12 @@
-import { holePar } from "@/lib/course";
+import { holePar, splitNines } from "@/lib/course";
 import {
   getHoleScore,
   netStrokes,
+  nineTotal,
   playerTotal,
   playerToPar,
   formatToPar,
+  toParClass,
 } from "@/lib/scoring";
 import type { Course, Hole, Round } from "@/lib/types";
 
@@ -17,8 +19,7 @@ import type { Course, Hole, Round } from "@/lib/types";
  * artifact — same scorecard, two outputs.
  */
 export function Scorecard({ round, course }: { round: Round; course: Course }) {
-  const front = course.holes.slice(0, 9);
-  const back = course.holes.slice(9);
+  const { front, back } = splitNines(course);
   const hasAssumedPar = Object.values(round.scores).some((byHole) =>
     Object.values(byHole).some((s) => s.autoFilled),
   );
@@ -82,7 +83,6 @@ function Nine({
 
           {/* One row per player */}
           {round.players.map((p) => {
-            let sum = 0;
             return (
               <tr key={p.id} className="border-t border-brand-line">
                 <td className="max-w-[5.5rem] truncate px-2 py-1 text-left font-bold text-brand-ink">
@@ -91,7 +91,6 @@ function Nine({
                 {holes.map((h) => {
                   const score = getHoleScore(round, p.id, h.number);
                   const net = score ? netStrokes(score) : null;
-                  if (net != null) sum += net;
                   const par = holePar(h);
                   // Assumed-par (auto-filled) scores read quiet and italic so
                   // they don't pass for scores someone actually entered.
@@ -112,7 +111,7 @@ function Nine({
                   );
                 })}
                 <td className="px-2 py-1 font-extrabold text-brand-ink">
-                  {sum}
+                  {nineTotal(round, p.id, holes)}
                 </td>
               </tr>
             );
@@ -125,14 +124,7 @@ function Nine({
 
 /** OUT / IN / TOTAL / to-par summary row per player. */
 function Totals({ round, course }: { round: Round; course: Course }) {
-  const frontHoles = course.holes.slice(0, 9);
-  const backHoles = course.holes.slice(9);
-
-  const sumOver = (playerId: string, holes: Hole[]) =>
-    holes.reduce((s, h) => {
-      const score = getHoleScore(round, playerId, h.number);
-      return s + (score ? netStrokes(score) : 0);
-    }, 0);
+  const { front, back } = splitNines(course);
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-brand-line">
@@ -148,8 +140,8 @@ function Totals({ round, course }: { round: Round; course: Course }) {
         </thead>
         <tbody>
           {round.players.map((p) => {
-            const out = sumOver(p.id, frontHoles);
-            const inn = sumOver(p.id, backHoles);
+            const out = nineTotal(round, p.id, front);
+            const inn = nineTotal(round, p.id, back);
             const toPar = playerToPar(round, course, p.id);
             return (
               <tr key={p.id} className="border-t border-brand-line">
@@ -161,15 +153,7 @@ function Totals({ round, course }: { round: Round; course: Course }) {
                 <td className="px-2 py-1.5 text-base font-extrabold text-brand-ink">
                   {playerTotal(round, p.id)}
                 </td>
-                <td
-                  className={`px-2 py-1.5 font-bold ${
-                    toPar < 0
-                      ? "text-brand-primary"
-                      : toPar > 0
-                        ? "text-brand-penalty"
-                        : "text-brand-stone"
-                  }`}
-                >
+                <td className={`px-2 py-1.5 font-bold ${toParClass(toPar)}`}>
                   {formatToPar(toPar)}
                 </td>
               </tr>

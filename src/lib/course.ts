@@ -14,3 +14,16 @@ export function holePar(hole: Hole): number {
 export function coursePar(course: Course): number {
   return course.holes.reduce((total, hole) => total + holePar(hole), 0);
 }
+
+/**
+ * Split a course into its front and back nine — the ONE place that encodes
+ * the "18 holes = two nines" scorecard assumption. The on-screen grid and the
+ * PDF both split through here. A course with 9 or fewer holes gets everything
+ * in `front` and an empty `back` (callers already skip an empty back nine).
+ */
+export function splitNines(course: Course): { front: Hole[]; back: Hole[] } {
+  return {
+    front: course.holes.slice(0, 9),
+    back: course.holes.slice(9),
+  };
+}

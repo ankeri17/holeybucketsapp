@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   netStrokes,
+  nineTotal,
   playerTotal,
   playerToPar,
   holesScored,
@@ -8,6 +9,7 @@ import {
   winners,
   joinNames,
   formatToPar,
+  toParClass,
   playerBalls,
   totalBalls,
 } from "./scoring";
@@ -109,6 +111,30 @@ describe("totals and to-par", () => {
 
   it("playerToPar only counts holes actually scored", () => {
     expect(playerToPar(round, course, "b")).toBe(0);
+  });
+
+  it("nineTotal sums net strokes over just the given holes", () => {
+    // Holes 1–2 of the test course: 3 + 5 = 8; hole 4 (scored 4) excluded.
+    expect(nineTotal(round, "a", course.holes.slice(0, 2))).toBe(8);
+  });
+
+  it("nineTotal skips unscored holes (hole 3 has no entry)", () => {
+    expect(nineTotal(round, "a", course.holes)).toBe(12);
+    expect(nineTotal(round, "b", course.holes)).toBe(0);
+  });
+
+  it("nineTotal subsets always reconcile with playerTotal (OUT + IN = TOTAL)", () => {
+    const out = nineTotal(round, "a", course.holes.slice(0, 2));
+    const inn = nineTotal(round, "a", course.holes.slice(2));
+    expect(out + inn).toBe(playerTotal(round, "a"));
+  });
+});
+
+describe("toParClass (design rule: green under, clay over, stone even)", () => {
+  it("maps under/over/even par to the brand color classes", () => {
+    expect(toParClass(-1)).toBe("text-brand-primary");
+    expect(toParClass(2)).toBe("text-brand-penalty");
+    expect(toParClass(0)).toBe("text-brand-stone");
   });
 });
 

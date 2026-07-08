@@ -11,6 +11,7 @@ import {
   netStrokes,
   standings,
   formatToPar,
+  toParClass,
   playerBalls,
 } from "@/lib/scoring";
 import { ChipInIcon, FoliageIcon } from "@/components/icons";
@@ -458,15 +459,7 @@ export default function PlayRoundPage() {
                 <span className="font-semibold text-brand-ink">{row.name}</span>
               </span>
               <span className="flex items-baseline gap-2">
-                <span
-                  className={`text-xs font-bold ${
-                    row.toPar < 0
-                      ? "text-brand-primary"
-                      : row.toPar > 0
-                        ? "text-brand-penalty"
-                        : "text-brand-stone"
-                  }`}
-                >
+                <span className={`text-xs font-bold ${toParClass(row.toPar)}`}>
                   {formatToPar(row.toPar)}
                 </span>
                 <span className="text-lg font-extrabold text-brand-ink">

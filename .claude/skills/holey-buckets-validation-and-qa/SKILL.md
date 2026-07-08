@@ -324,7 +324,7 @@ Re-verification commands (run from repo root) for anything that may drift:
 | Smoke script still passes | `node .claude/skills/holey-buckets-validation-and-qa/scripts/scoring-smoke.mjs` |
 | tsc still a devDep | `node_modules/.bin/tsc --version` (5.9.x installed against `"typescript": "^5.5.3"` as of 2026-07-02) |
 | Route list unchanged | `npm run build` → 7-route table in §1 |
-| Scoring exports unchanged | `grep -n "export function" src/lib/scoring.ts` → netStrokes, getHoleScore, holesScored, playerTotal, playerToPar, standings, playerBalls, totalBalls, winners, joinNames, formatToPar |
+| Scoring exports unchanged | `grep -n "export function" src/lib/scoring.ts` → netStrokes, getHoleScore, holesScored, playerTotal, nineTotal, playerToPar, standings, playerBalls, totalBalls, winners, joinNames, formatToPar, toParClass (nineTotal/toParClass added 2026-07-08 — OUT/IN and to-par color are centralized there) |
 | Tie hero string | `grep -n "It's a tie" "src/app/play/[roundId]/results/page.tsx"` |
 | Share card top-5 + TIE label | `grep -n "slice(0, 5)\|\"TIE\"" src/lib/shareImage.ts` |
 | PDF filenames | `grep -n "doc.save" src/lib/pdf.ts` |

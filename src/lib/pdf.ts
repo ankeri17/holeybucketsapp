@@ -1,8 +1,8 @@
 import type { jsPDF } from "jspdf";
 import type { autoTable as AutoTableFn, CellHookData } from "jspdf-autotable";
 import { brand } from "@/config/branding";
-import { holePar } from "@/lib/course";
-import { getHoleScore, netStrokes, playerTotal } from "@/lib/scoring";
+import { holePar, splitNines } from "@/lib/course";
+import { getHoleScore, netStrokes, nineTotal, playerTotal } from "@/lib/scoring";
 import { getSponsors } from "@/config/sponsors";
 import { activeDigitalSponsors, activeHoleSponsors } from "@/lib/sponsors";
 import type { Course, Round, Sponsor } from "@/lib/types";
@@ -32,8 +32,7 @@ function hexToRgb(hex: string): [number, number, number] {
 
 /** Build the column header and the par row, shared by both card types. */
 function scorecardSkeleton(course: Course) {
-  const front = course.holes.slice(0, 9);
-  const back = course.holes.slice(9);
+  const { front, back } = splitNines(course);
   const parOut = front.reduce((s, h) => s + holePar(h), 0);
   const parIn = back.reduce((s, h) => s + holePar(h), 0);
 
@@ -303,10 +302,12 @@ export async function downloadResultsScorecard(round: Round, course: Course): Pr
       return s ? netStrokes(s) : "";
     };
     // Columns: 0 = name, then front nine, OUT, back nine, IN, Tot.
+    // OUT/IN come from the same nineTotal helper the on-screen grid uses,
+    // so the printed card can't disagree with the screen.
     const frontCells = front.map((h, i) => cellFor(h.number, 1 + i));
     const backCells = back.map((h, i) => cellFor(h.number, front.length + 2 + i));
-    const out = frontCells.reduce<number>((s, v) => s + (typeof v === "number" ? v : 0), 0);
-    const inn = backCells.reduce<number>((s, v) => s + (typeof v === "number" ? v : 0), 0);
+    const out = nineTotal(round, p.id, front);
+    const inn = nineTotal(round, p.id, back);
     return [p.name, ...frontCells, out, ...backCells, inn, playerTotal(round, p.id)];
   });
 

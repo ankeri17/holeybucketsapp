@@ -1,4 +1,10 @@
-import { DEFAULT_PAR, type Course, type HoleScore, type Round } from "./types";
+import {
+  DEFAULT_PAR,
+  type Course,
+  type Hole,
+  type HoleScore,
+  type Round,
+} from "./types";
 import { holePar } from "./course";
 
 /**
@@ -43,6 +49,23 @@ export function playerTotal(round: Round, playerId: string): number {
   const byHole = round.scores[playerId];
   if (!byHole) return 0;
   return Object.values(byHole).reduce((sum, s) => sum + netStrokes(s), 0);
+}
+
+/**
+ * A player's total net strokes over a subset of holes (a front or back nine).
+ * Unscored holes contribute nothing. The OUT/IN subtotals on the scorecard
+ * grid, the totals table, and the PDF all sum through here, so the printed
+ * card and the screen can never disagree.
+ */
+export function nineTotal(
+  round: Round,
+  playerId: string,
+  holes: Hole[],
+): number {
+  return holes.reduce((sum, hole) => {
+    const score = getHoleScore(round, playerId, hole.number);
+    return sum + (score ? netStrokes(score) : 0);
+  }, 0);
 }
 
 /** A player's score relative to par, over the holes they've scored. */
@@ -127,4 +150,16 @@ export function joinNames(names: string[]): string {
 export function formatToPar(toPar: number): string {
   if (toPar === 0) return "E";
   return toPar > 0 ? `+${toPar}` : `${toPar}`;
+}
+
+/**
+ * The Tailwind text-color class for a to-par number — the design-system rule
+ * (under par = fairway green, over par = penalty clay, even = stone; always
+ * paired with formatToPar's explicit +/− sign so color is never the only
+ * signal). One helper so every surface colors to-par the same way.
+ */
+export function toParClass(toPar: number): string {
+  if (toPar < 0) return "text-brand-primary";
+  if (toPar > 0) return "text-brand-penalty";
+  return "text-brand-stone";
 }
