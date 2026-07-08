@@ -15,10 +15,14 @@ description: >
 # Holey Buckets — Change Control
 
 How changes are classified, gated, and reviewed in this repo, plus the project's
-non-negotiables with the history behind each. As of 2026-07-02 there is **no test
-suite, no CI, and no .github/ directory** — Netlify rebuilds `main` on every push,
-so **the PR discipline in this file IS the quality system**. Skipping it means
-shipping unreviewed code straight to the live app.
+non-negotiables with the history behind each. As of 2026-07-08 there IS a small
+quality floor: a **vitest suite** (`npm test`, `src/**/*.test.ts`) and **GitHub
+Actions CI** (`.github/workflows/ci.yml`: typecheck, lint, test, build on every PR
+and on pushes to `main`), both added 2026-07-03 (commit 8b9f680). Netlify still
+rebuilds `main` on every push with no staging, so **the PR discipline in this file
+is still the quality system** — CI catches breakage, not wrongness; the "Verified"
+evidence bar below is unchanged. Skipping it means shipping unreviewed code
+straight to the live app.
 
 ## When to use this skill
 
@@ -44,9 +48,10 @@ shipping unreviewed code straight to the live app.
 
 ## Vocabulary (defined once)
 
-- **Founder-editable**: `src/config/branding.ts` and `src/config/courses/*.ts` are
-  edited directly by the owner, Erin — a **non-developer**. They stay heavily
-  commented, plain-English, no code knowledge required.
+- **Founder-editable**: `src/config/branding.ts`, `src/config/courses/*.ts`, and
+  (since 2026-07-08) `src/config/sponsors/*.ts` are edited directly by the owner,
+  Erin — a **non-developer**. They stay heavily commented, plain-English, no code
+  knowledge required.
 - **Bucket chip**: chipping the ball INTO the bucket; a binary −1 stroke bonus
   (`bucketChip` on `HoleScore`).
 - **Net strokes**: `max(0, strokes − (bucketChip?1:0) + (penalties??0))` —
@@ -67,7 +72,7 @@ Classify EVERY change before writing code. A PR should fall into ONE class
 
 | Class | Typical files | Gate | Required evidence in PR "Verified" section |
 |---|---|---|---|
-| **Config-only founder edit** | `src/config/branding.ts`, `src/config/courses/*.ts` (values only, not structure) | Lightest. Founder may edit directly. If YOU edit: preserve every comment and the plain-English style (non-negotiable #4) | `npm run build`; 390px look at `/`, `/course`, and one scoring screen if colors changed. `branding.ts` also feeds the share card + PDFs (non-negotiable #2): if colors changed, ALSO render the share card and open both PDFs (validation-and-qa §2.1 steps 6–7) |
+| **Config-only founder edit** | `src/config/branding.ts`, `src/config/courses/*.ts`, `src/config/sponsors/*.ts` (values only, not structure) | Lightest. Founder may edit directly. If YOU edit: preserve every comment and the plain-English style (non-negotiable #4) | `npm run build`; 390px look at `/`, `/course`, and one scoring screen if colors changed. `branding.ts` also feeds the share card + PDFs (non-negotiable #2): if colors changed, ALSO render the share card and open both PDFs (validation-and-qa §2.1 steps 6–7) |
 | **UI / feature** | `src/app/**`, `src/components/**`, `src/app/globals.css` | Standard PR + **founder device-test before/at merge** (see §3). Respect design guardrails (non-negotiable #8) | Baseline + screenshots/described renders of every touched screen; tap targets still ≥56px (`.tap-target`) |
 | **Scoring math** | `src/lib/scoring.ts`, `src/lib/course.ts`, anything computing or displaying a score | HIGH. All rule math stays in `scoring.ts` (non-negotiable #3). Load `holey-buckets-validation-and-qa` and run its canonical math cases | Baseline + hand-checked canonical cases + scorecard reconciliation (OUT + IN = TOTAL; to-par over played holes only) + a deliberate 2-way tie if ties/multi-player logic touched |
 | **Storage schema** | `src/lib/storage.ts`, `Round`/`HoleScore` in `src/lib/types.ts`, `src/lib/round.ts` | HIGHEST. Route through `holey-buckets-round-data-safety` FIRST. Any change that could corrupt or drop an in-progress round needs an explicit, documented decision in the PR (non-negotiable #5) | Baseline + old-round compatibility statement ("a round saved before this change loads and reads as …") + the round-data-safety checklist |
@@ -143,8 +148,9 @@ Edge rules:
    the PR; silent corruption or silent drop is an automatic reject.
 
 6. **Every PR proves itself** (founder-confirmed house rule).
-   Why: with no tests and no CI, the "Verified" section is the only evidence
-   layer between a diff and production.
+   Why: CI (since 2026-07-03) only proves the code compiles, lints, and passes
+   the unit tests — the "Verified" section remains the only evidence layer for
+   rendered screens, PDFs, and real-device behavior.
    History: house discipline across PRs #1–#15; e.g. PR #10 verified the
    scorecard by hand-reconciling OUT+IN=TOTAL (25+27=52/−2).
    Comply: §3 below.
@@ -172,7 +178,7 @@ Edge rules:
    - Rendered at 390px: which screens, what you saw (screenshots or described
      renders — observations, not claims).
    - `npm run build` passes (this runs lint + type-check; expect
-     "Linting and checking validity of types" then a 6-route output ending
+     "Linting and checking validity of types" then a 7-route output ending
      "Generating static pages").
    - Class-specific evidence from the §1 table (scoring spot-checks,
      old-round compatibility, PDF opened, etc.).
@@ -201,13 +207,14 @@ Rules, with precedent:
 | **Prefer zero-dep solutions** | Share card is a hand-drawn 1080×1080 `<canvas>` PNG, no image library (PR #5); a QR-code library was declined in PR #11 — a text URL on the share card instead |
 | **Dynamic-import heavy deps** so the main bundle stays light | `pdf.ts` does `await import("jspdf")` / `await import("jspdf-autotable")` only when the user clicks a download button (PR #13). Any future heavy dep follows this pattern |
 | **Don't bump Next majors casually** | Next pinned at 14.2.35 since PR #1, with known DoS-class advisories explicitly accepted as not worth a major bump for a backend-less MVP. Re-litigate that decision in a dedicated deploy-config PR, not as a drive-by |
-| No test-runner/CI deps exist | Adding one is a real (candidate) proposal — see `holey-buckets-validation-and-qa` for how a test suite would be introduced; it still goes through this dependency gate |
+| Test-runner dep admitted | `vitest` became a devDependency (with the CI workflow) on 2026-07-03, commit 8b9f680 — the shape validation-and-qa §9 proposed. Further test/CI deps (e.g. playwright) still go through this gate |
 
 ## 5. What NEVER to do
 
-1. **Never break founder-editability** of `src/config/branding.ts` or
-   `src/config/courses/*.ts` — no stripped comments, no required-field additions
-   that break existing files, no logic in config.
+1. **Never break founder-editability** of `src/config/branding.ts`,
+   `src/config/courses/*.ts`, or `src/config/sponsors/*.ts` — no stripped
+   comments, no required-field additions that break existing files, no logic
+   in config.
 2. **Never drop or corrupt a live round silently.** Any stored-shape change
    states its effect on pre-existing saved rounds in the PR, per
    `holey-buckets-round-data-safety`.
@@ -236,7 +243,7 @@ Re-verify before relying on volatile facts:
 | Claim | One-line check |
 |---|---|
 | Runtime dep list / Next pin | `grep -A8 '"dependencies"' package.json` |
-| No test suite / CI | `ls .github 2>&1; grep -E '"(test|jest|vitest)"' package.json` |
+| Test suite + CI present | `ls .github/workflows; grep -E '"(test|vitest)"' package.json` (expect ci.yml; vitest + a test script) |
 | jsPDF still dynamic-imported | `grep -n 'await import' src/lib/pdf.ts` |
 | Share card still zero-dep | `grep -n '^import' src/lib/shareImage.ts` (only `./types`, `./scoring`, `@/config/branding`) |
 | scoring.ts consumers | `grep -rn 'from ".*scoring"' src` (shareImage.ts imports it as `./scoring`, not `@/lib/scoring`) |
@@ -244,5 +251,5 @@ Re-verify before relying on volatile facts:
 | localStorage keys unchanged | `grep -n 'holeybuckets:' src/lib/storage.ts` |
 | Brand tokens flow (no drift) | `grep -n 'branding' tailwind.config.ts src/app/layout.tsx src/lib/shareImage.ts src/lib/pdf.ts` |
 | Netlify deploy config | `cat netlify.toml` (build `npm run build`, publish `.next`, plugin `@netlify/plugin-nextjs`) |
-| Build passes + 6 routes | `npm run build` |
-| Founder-editable comments intact | `head -30 src/config/branding.ts src/config/courses/osceola.ts` |
+| Build passes + 7 routes | `npm run build` (7 incl. `/icon.svg` since 2026-07-03) |
+| Founder-editable comments intact | `head -30 src/config/branding.ts src/config/courses/osceola.ts src/config/sponsors/osceola.ts` |

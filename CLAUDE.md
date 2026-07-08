@@ -16,8 +16,9 @@ Quick routing:
 - Launch work (real course data, email capture, domain) → `holey-buckets-launch-campaign`
 - "Why is it like this?" / "has this been tried?" → `holey-buckets-history-and-decisions`
 
-House rules that override everything: a course is data, never hardcoded;
-`branding.ts` and `src/config/courses/*.ts` stay editable by a non-developer;
+House rules that override everything: a course is data, never hardcoded — and
+so are sponsors; `branding.ts`, `src/config/courses/*.ts`, and
+`src/config/sponsors/*.ts` stay editable by a non-developer;
 never silently lose a saved round; every PR carries a "Verified" section
 (390px render + `npm run build` + spot checks). Details and rationale live in
 the skills, not here — this file is only the pointer.
