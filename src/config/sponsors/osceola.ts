@@ -61,11 +61,12 @@ export const osceolaSponsors: Sponsor[] = [
   },
 
   // The location sponsor — Scotty's company hosts the course. Fills the
-  // digital rotation until paying sponsors are acquired. Add their logo to
-  // /public/sponsors/ and a `logoUrl` here once it's received.
+  // digital rotation until paying sponsors are acquired. The logo is a
+  // black script wordmark on a transparent background.
   {
     id: "hello-again-properties",
     name: "Hello Again Properties",
+    logoUrl: "/sponsors/hello-again-properties.png",
     tier: "digital",
     status: "active",
     url: "https://www.helloagainproperties.com/",
