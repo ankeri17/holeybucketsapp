@@ -265,9 +265,9 @@ full bodies of merged PRs #1–#15 on github.com/ankeri17/holeybucketsapp.
 |---|---|
 | README roadmap ticks (✅ 1–6, ⬜ 7–8) + stale "Milestone 1" status | `grep -n "✅\|⬜\|Status:" README.md` |
 | README run commands match package.json | `grep -n "\"dev\"\|\"build\"\|\"lint\"" package.json` then compare README "Run it" section |
-| "Two files you'll most likely want to edit" section intact | `grep -n "two files" README.md` |
+| "Three files you'll most likely want to edit" section intact | `grep -n "three files" README.md` |
 | branding.ts / osceola.ts how-to comment blocks intact | `head -30 src/config/branding.ts src/config/courses/osceola.ts` |
-| osceola.ts still placeholder data | `grep -n "PLACEHOLDER" src/config/courses/osceola.ts` |
+| osceola.ts carries real worksheet data (since 2026-07-11) | `grep -n "real" src/config/courses/osceola.ts` |
 | "Heads up" copy idiom | `grep -rn "Heads up" src/` |
 | Middle-dot / em-dash usage in UI copy | `grep -rn "·" src/app src/lib \| head` |
 | PR body form still followed | Read the latest merged PR body on GitHub; compare to §4 skeleton |
