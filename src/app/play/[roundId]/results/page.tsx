@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { getCourse } from "@/config/courses";
+import { useLiveCourse } from "@/lib/liveData";
 import { loadRound, clearActiveRoundId } from "@/lib/storage";
 import {
   standings,
@@ -38,7 +38,10 @@ export default function ResultsPage() {
     setLoaded(true);
   }, [params.roundId]);
 
-  const course = round ? getCourse(round.courseId) : undefined;
+  // The course, live from the owner's Google Sheet when connected — so the
+  // share card and scorecard carry the current hole names.
+  const { course: liveCourse } = useLiveCourse(round?.courseId);
+  const course = round ? liveCourse : undefined;
   const board = useMemo(
     () => (round && course ? standings(round, course) : []),
     [round, course],

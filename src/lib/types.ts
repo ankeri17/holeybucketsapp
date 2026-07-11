@@ -46,8 +46,11 @@ export interface Hole {
   name?: string;
   /** Par for this hole. Defaults to DEFAULT_PAR (3) when omitted. */
   par?: number;
-  /** Optional distance from tee to bucket, measured in paces. */
-  distancePaces?: number;
+  /**
+   * Optional distance from tee to bucket. The unit is course-level data
+   * (see Course.distanceUnit) — the flagship worksheet measures in yards.
+   */
+  distance?: number;
   /** Optional free-text description of hazards (bushes, water, the deck...). */
   hazards?: string;
   /** Optional difficulty ranking, 1 = hardest. Used by the Phase 2 handicap. */
@@ -93,8 +96,61 @@ export interface Course {
   trackBalls?: boolean;
   /** Optional hero image URL for the course page (from the owner worksheet). */
   heroImage?: string;
+  /**
+   * What unit hole distances are measured in. Defaults to "paces" (the
+   * original pace-it-off suggestion); the flagship worksheet came back in
+   * yards, so the flagship sets "yards".
+   */
+  distanceUnit?: "paces" | "yards";
+  /**
+   * Out-of-bounds / safety notes for the whole course, e.g. "OB: farmer
+   * field, road, driveway". From the owner worksheet's Course Info tab.
+   */
+  outOfBounds?: string;
+  /** House rules specific to this course, e.g. "tee off from the mat". */
+  houseRules?: string;
+  /** Where a group should start, e.g. "start at hole 1 or hole 10". */
+  startingTee?: string;
   /** The holes, in play order. */
   holes: Hole[];
+}
+
+/* ----------------------------------------------------------------------------
+ * SPONSORS
+ *
+ * Sponsor data lives in the owner's sponsorship tracker (a Google Sheet) and
+ * is read by the app at runtime — see src/lib/sheets.ts. Only these fields
+ * ever leave the sheet for the app; contact details (email/phone) are never
+ * parsed, so they can't end up in anyone's browser.
+ * ------------------------------------------------------------------------- */
+
+/** "hole" = sponsors a specific hole (sign on the course); "digital" = app/site only. */
+export type SponsorTier = "hole" | "digital";
+
+/** The pipeline states used in the sponsorship tracker sheet. */
+export type SponsorStatus =
+  | "lead"
+  | "contacted"
+  | "verbalYes"
+  | "paid"
+  | "active"
+  | "lapsed"
+  | "renewed"
+  | "declined"
+  | "unknown";
+
+/** A sponsor row, as the app sees it (public-safe fields only). */
+export interface Sponsor {
+  /** The business name shown to players, e.g. "Osceola Hardware". */
+  name: string;
+  tier: SponsorTier;
+  status: SponsorStatus;
+  /** For hole sponsors: which hole they sponsor. */
+  holeNumber?: number;
+  /** Optional link to the sponsor's site (add a "Website" column to use). */
+  website?: string;
+  /** Optional logo image URL (add a "Logo URL" column to use). */
+  logoUrl?: string;
 }
 
 /** A player in a round. MVP: a name only — no accounts, no logins. */
