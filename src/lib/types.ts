@@ -51,8 +51,11 @@ export interface Hole {
   name?: string;
   /** Par for this hole (the worksheet has 2s, 3s, and 4s). Defaults to DEFAULT_PAR (3) when omitted. */
   par?: number;
-  /** Optional distance from tee to bucket, in yards (per the owner worksheet). */
-  distanceYards?: number;
+  /**
+   * Optional distance from tee to bucket. The unit is course-level data
+   * (see Course.distanceUnit) — the flagship worksheet measures in yards.
+   */
+  distance?: number;
   /** Optional free-text description of hazards (bushes, water, the deck...). */
   hazards?: string;
   /** Optional difficulty ranking, 1 = hardest. Used by the Phase 2 handicap. */
@@ -99,59 +102,72 @@ export interface Course {
   /** Optional hero image URL for the course page (from the owner worksheet). */
   heroImage?: string;
   /**
-   * Optional out-of-bounds / safety notes for the whole course — what players
-   * should NOT aim at (from the worksheet's Course Info tab).
+   * What unit hole distances are measured in. Defaults to "paces" (the
+   * original pace-it-off suggestion); the flagship worksheet came back in
+   * yards, so the flagship sets "yards".
+   */
+  distanceUnit?: "paces" | "yards";
+  /**
+   * Out-of-bounds / safety notes for the whole course, e.g. "OB: farmer
+   * field, road, driveway". From the owner worksheet's Course Info tab.
    */
   outOfBounds?: string;
-  /** Optional course-specific house rules, e.g. "Tee off from the mat". */
+  /** House rules specific to this course, e.g. "tee off from the mat". */
   houseRules?: string;
-  /** Optional note on where a group starts, e.g. "Start at hole 1 or 10". */
+  /** Where a group should start, e.g. "start at hole 1 or hole 10". */
   startingTee?: string;
   /** The holes, in play order. */
   holes: Hole[];
 }
 
-/** The two sponsorship placements sold today. */
-export type SponsorTier =
-  | "hole" // "Hole presented by …" on one hole (app + scorecard)
-  | "digital"; // rotating app slot + the printed "Thanks to our sponsors" row
+/* ----------------------------------------------------------------------------
+ * SPONSORS
+ *
+ * Sponsors are **data**, never hardcoded. The owner maintains them in the
+ * sponsorship tracker (a Google Sheet), which the app reads at runtime — see
+ * src/lib/sheets.ts and src/lib/liveData.ts. The bundled list in
+ * src/config/sponsors/ is the always-works fallback shown until a sheet is
+ * connected. Only public-safe fields ever leave the sheet; contact details
+ * (email/phone) are never parsed, so they can't end up in anyone's browser.
+ * ------------------------------------------------------------------------- */
+
+/** "hole" = sponsors a specific hole (sign on the course); "digital" = app/site only. */
+export type SponsorTier = "hole" | "digital";
 
 /**
- * Whether a sponsorship is currently running. Flipping a sponsor to "lapsed"
- * is the manual kill switch: it removes them from EVERY placement (app and
- * PDF) with no other edits — the stand-in for payment webhooks until Phase 2.
+ * The pipeline states used in the sponsorship tracker sheet. Only "active"
+ * and "renewed" sponsors show to players anywhere (see src/lib/sponsors.ts);
+ * every other state is pipeline bookkeeping the admin panel surfaces.
  */
-export type SponsorStatus = "active" | "lapsed";
+export type SponsorStatus =
+  | "lead"
+  | "contacted"
+  | "verbalYes"
+  | "paid"
+  | "active"
+  | "lapsed"
+  | "renewed"
+  | "declined"
+  | "unknown";
 
-/**
- * A sponsor of a course. Like a course, a sponsor is **data**, never
- * hardcoded — sponsors live in src/config/sponsors/, scoped per course, and
- * every placement renders from these objects.
- */
+/** A sponsor row, as the app sees it (public-safe fields only). */
 export interface Sponsor {
-  /** Stable unique slug, e.g. "osceola-hardware". */
-  id: string;
-  /** Display name, e.g. "Osceola Hardware". */
+  /**
+   * Stable unique slug, e.g. "osceola-hardware". Set on bundled-config
+   * sponsors (and validated for uniqueness at build); sheet rows have none.
+   */
+  id?: string;
+  /** The business name shown to players, e.g. "Osceola Hardware". */
   name: string;
-  /**
-   * Path to the logo, e.g. "/sponsors/osceola-hardware.png" (files live in
-   * /public/sponsors/). Optional — a sponsor with no logo (or a broken file)
-   * renders as their styled name instead; a missing image never breaks a page.
-   */
-  logoUrl?: string;
-  /** Which placement this sponsor bought. */
   tier: SponsorTier;
-  /** "active" shows everywhere; "lapsed" removes them everywhere. */
   status: SponsorStatus;
-  /**
-   * The `number` of the hole they sponsor. Required when tier is "hole" and
-   * must match a real hole in the course data; at most ONE active hole sponsor
-   * per hole (validated loudly at build/load in src/config/sponsors/).
-   */
-  holeId?: number;
-  /** Optional website — sponsor placements in the app link out to it. */
-  url?: string;
-  /** Term dates (ISO, e.g. "2026-05-01"). Informational only in the MVP. */
+  /** For hole sponsors: which hole they sponsor. */
+  holeNumber?: number;
+  /** Optional link to the sponsor's site (add a "Website" column to use). */
+  website?: string;
+  /** Optional logo image URL (add a "Logo URL" column to use). */
+  logoUrl?: string;
+  /** Term dates (ISO, e.g. "2026-05-01"). Informational; bundled config only. */
   termStart?: string;
   termEnd?: string;
 }

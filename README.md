@@ -33,17 +33,54 @@ You don't need to be a developer to change these:
    and the "Book your round" button link. Change it here and the whole app
    re-skins. It's heavily commented.
 2. **`src/config/courses/osceola.ts`** — the Osceola holes (names, distances,
-   pars, hazards, notes). It now carries the real Grey Duck layout from the
-   owner's worksheet (18 holes, mixed pars 2–4, distances in yards). Editing
-   the course is a one-file change — nothing else moves.
-3. **`src/config/sponsors/osceola.ts`** — the Grey Duck's sponsors. Adding a
-   sponsor = one block in this file + their logo dropped into
-   `public/sponsors/`. When a sponsor stops paying, change their `status` to
-   `"lapsed"` and that one edit removes them from the app AND the printed
-   scorecards (and update the Sponsorship Tracker too — two places until it's
-   automated). Current entries are from the tracker: two named placeholders
-   and the location sponsor, none paying yet, all rendering as typography
-   until logos are received.
+   pars, hazards, notes). It carries the real Grey Duck layout from the owner's
+   worksheet (18 holes, mixed pars 2–4, distances in yards), and acts as the
+   app's built-in fallback copy when no Google Sheet is connected.
+3. **`src/config/sponsors/osceola.ts`** — the Grey Duck's bundled sponsors, the
+   always-works fallback shown until a sheet is connected. Adding a sponsor here
+   = one block + their logo dropped into `public/sponsors/`; set a sponsor's
+   `status` to `"lapsed"` to hide them. Once the sponsorship tracker sheet is
+   connected (see below), that live sheet becomes the source of truth.
+4. **`src/config/sheets.ts`** — connects the app to the Google Sheets the
+   course is run from, and sets the secret admin URL (see below).
+
+## The admin panel (for Scotty & staff)
+
+The maintenance dashboard lives at an unlisted address:
+
+```
+https://<the-site>/admin/<adminKey>
+```
+
+The `adminKey` is set in `src/config/sheets.ts` — the full URL *is* the login
+(no accounts, no passwords to manage; change the key to cut off access).
+Search engines are told to ignore the page, and a wrong key shows nothing.
+
+What it does:
+
+- Shows whether the app is reading **live Google Sheets data**, a cached
+  copy, or the built-in fallback — and exactly what to fix when a sheet
+  isn't reachable.
+- Previews the course and sponsors the way players will see them, and flags
+  data problems (missing distances, a double-sold sponsor hole, …).
+- Tracks which holes still need tee photos, with the exact steps for adding
+  them from the Drive photos folder.
+- Links straight into the course worksheet and sponsor tracker to edit —
+  the actual editing stays in Google Sheets, behind the owner's normal
+  Google login. That's the whole security model for now.
+
+### How the Google Sheets integration works
+
+Course info and sponsors are read straight from the owner's existing
+worksheets (`holey-buckets-course-details` and the sponsorship tracker) by
+the player's browser — no server and no API keys. A sheet just has to be a
+native Google Sheet shared as "Anyone with the link (Viewer)"; paste its ID
+into `src/config/sheets.ts` and edits in the sheet show up in the app on
+refresh. Until a sheet is connected (or whenever it's unreachable), the app
+quietly runs on the built-in course data — the play loop can never be taken
+down by a spreadsheet. Only "Active" (and "Renewed") sponsors are shown to
+players, and the app never reads sponsor contact columns (see the privacy
+note in `src/config/sheets.ts`).
 
 ## Run it on your computer
 
@@ -108,8 +145,13 @@ Things to do before pointing real players at this:
 - [x] Replace the placeholder holes in `src/config/courses/osceola.ts` with
       the owner's real course worksheet (names, yards, pars). Still missing
       from the worksheet: per-hole hazards, difficulty ranks, and tips.
-- [ ] Drop the real course + tee photos into `public/courses/grayduck/`
-      (Scotty's walk-through photos need hole-order confirmation first).
+- [ ] Connect the course + sponsor Google Sheets in `src/config/sheets.ts`
+      (steps are shown in the admin panel).
+- [ ] Change the default `adminKey` in `src/config/sheets.ts` and share the
+      admin URL with staff.
+- [ ] Add the real course + tee photos — files in `public/courses/grayduck/`
+      (Scotty's walk-through photos need hole-order confirmation first), or
+      Drive links via the sheet's Photo URL column.
 - [ ] Point `siteUrl` in `src/config/branding.ts` at the real domain — it's
       baked into every shared result image, permanently.
 - [ ] Set the real booking/contact URL in `bookingCta` (used by Milestone 7).

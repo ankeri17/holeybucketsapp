@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { holePar, coursePar, courseYards } from "./course";
+import { holePar, coursePar, courseDistance } from "./course";
 import { osceola } from "@/config/courses/osceola";
 import type { Course } from "./types";
 
@@ -21,14 +21,14 @@ describe("course helpers", () => {
     expect(coursePar(course)).toBe(10);
   });
 
-  it("courseYards sums distances, treating missing ones as 0", () => {
+  it("courseDistance sums distances, treating missing ones as 0", () => {
     const course: Course = {
       id: "c",
       name: "C",
       location: "L",
-      holes: [{ number: 1, distanceYards: 30 }, { number: 2 }],
+      holes: [{ number: 1, distance: 30 }, { number: 2 }],
     };
-    expect(courseYards(course)).toBe(30);
+    expect(courseDistance(course)).toBe(30);
   });
 });
 
@@ -44,18 +44,18 @@ describe("the Grey Duck course data", () => {
     );
   });
 
-  it("gives every hole an explicit par between 2 and 4 (not all par 3!)", () => {
+  it("gives every hole a par between 2 and 4 (not all par 3!)", () => {
     for (const hole of osceola.holes) {
-      expect(hole.par, `hole ${hole.number}`).toBeGreaterThanOrEqual(2);
-      expect(hole.par, `hole ${hole.number}`).toBeLessThanOrEqual(4);
+      expect(holePar(hole), `hole ${hole.number}`).toBeGreaterThanOrEqual(2);
+      expect(holePar(hole), `hole ${hole.number}`).toBeLessThanOrEqual(4);
     }
-    const pars = new Set(osceola.holes.map((h) => h.par));
+    const pars = new Set(osceola.holes.map((h) => holePar(h)));
     expect(pars).toEqual(new Set([2, 3, 4]));
   });
 
   it("totals par 54 and 529 yards, per the worksheet", () => {
     expect(coursePar(osceola)).toBe(54);
-    expect(courseYards(osceola)).toBe(529);
+    expect(courseDistance(osceola)).toBe(529);
   });
 
   it("every teePhoto points at a real file in public/", () => {

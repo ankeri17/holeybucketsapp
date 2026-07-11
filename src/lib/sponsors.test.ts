@@ -33,8 +33,8 @@ function sponsor(overrides: Partial<Sponsor>): Sponsor {
 
 describe("active-sponsor filters (the lapsed kill switch)", () => {
   const list: Sponsor[] = [
-    sponsor({ id: "h1", tier: "hole", holeId: 2 }),
-    sponsor({ id: "h2", tier: "hole", holeId: 1, status: "lapsed" }),
+    sponsor({ id: "h1", tier: "hole", holeNumber: 2 }),
+    sponsor({ id: "h2", tier: "hole", holeNumber: 1, status: "lapsed" }),
     sponsor({ id: "d1", tier: "digital" }),
     sponsor({ id: "d2", tier: "digital", status: "lapsed" }),
   ];
@@ -45,9 +45,9 @@ describe("active-sponsor filters (the lapsed kill switch)", () => {
 
   it("activeHoleSponsors keeps only active hole sponsors, in hole order", () => {
     const holes = activeHoleSponsors([
-      sponsor({ id: "b", tier: "hole", holeId: 3 }),
-      sponsor({ id: "a", tier: "hole", holeId: 1 }),
-      sponsor({ id: "lapsed", tier: "hole", holeId: 2, status: "lapsed" }),
+      sponsor({ id: "b", tier: "hole", holeNumber: 3 }),
+      sponsor({ id: "a", tier: "hole", holeNumber: 1 }),
+      sponsor({ id: "lapsed", tier: "hole", holeNumber: 2, status: "lapsed" }),
     ]);
     expect(holes.map((s) => s.id)).toEqual(["a", "b"]);
   });
@@ -69,7 +69,7 @@ describe("validateSponsors (loud failure at build/load)", () => {
       validateSponsors(
         "test",
         [
-          sponsor({ id: "h1", tier: "hole", holeId: 1 }),
+          sponsor({ id: "h1", tier: "hole", holeNumber: 1 }),
           sponsor({ id: "d1", tier: "digital" }),
         ],
         course,
@@ -82,12 +82,12 @@ describe("validateSponsors (loud failure at build/load)", () => {
       validateSponsors(
         "test",
         [
-          sponsor({ id: "h1", tier: "hole", holeId: 2 }),
-          sponsor({ id: "h2", tier: "hole", holeId: 2 }),
+          sponsor({ id: "h1", tier: "hole", holeNumber: 2 }),
+          sponsor({ id: "h2", tier: "hole", holeNumber: 2 }),
         ],
         course,
       ),
-    ).toThrow(/two ACTIVE sponsors/);
+    ).toThrow(/two active sponsors/);
   });
 
   it("allows an active + a lapsed sponsor on the same hole (renewals)", () => {
@@ -95,25 +95,25 @@ describe("validateSponsors (loud failure at build/load)", () => {
       validateSponsors(
         "test",
         [
-          sponsor({ id: "h1", tier: "hole", holeId: 2 }),
-          sponsor({ id: "h2", tier: "hole", holeId: 2, status: "lapsed" }),
+          sponsor({ id: "h1", tier: "hole", holeNumber: 2 }),
+          sponsor({ id: "h2", tier: "hole", holeNumber: 2, status: "lapsed" }),
         ],
         course,
       ),
     ).not.toThrow();
   });
 
-  it("throws when a hole sponsor has no holeId", () => {
+  it("throws when a hole sponsor has no holeNumber", () => {
     expect(() =>
       validateSponsors("test", [sponsor({ id: "h1", tier: "hole" })], course),
-    ).toThrow(/missing its holeId/);
+    ).toThrow(/missing its holeNumber/);
   });
 
-  it("throws when holeId points at a hole the course doesn't have", () => {
+  it("throws when holeNumber points at a hole the course doesn't have", () => {
     expect(() =>
       validateSponsors(
         "test",
-        [sponsor({ id: "h1", tier: "hole", holeId: 99 })],
+        [sponsor({ id: "h1", tier: "hole", holeNumber: 99 })],
         course,
       ),
     ).toThrow(/isn't on course/);

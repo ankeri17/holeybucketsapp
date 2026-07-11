@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSponsors } from "@/config/sponsors";
 import { activeDigitalSponsors } from "@/lib/sponsors";
+import { useLiveSponsors } from "@/lib/liveData";
 import { SponsorLink, SponsorLogo } from "./SponsorLogo";
 import type { Sponsor } from "@/lib/types";
 
@@ -12,18 +12,20 @@ import type { Sponsor } from "@/lib/types";
  * Rotation is per page load: each visit picks one active digital sponsor at
  * random, so every sponsor gets fair exposure without any on-screen motion.
  * The pick happens on mount (client-side) — a statically prerendered page
- * would otherwise bake one sponsor in forever. Renders nothing when there are
- * no active digital sponsors.
+ * would otherwise bake one sponsor in forever. Sponsors come live from the
+ * connected Google Sheet, with the bundled config as the fallback. Renders
+ * nothing when there are no active digital sponsors.
  */
-export function DigitalSponsorSlot({ courseId }: { courseId: string }) {
+export function DigitalSponsorSlot(_props: { courseId: string }) {
+  const { sponsors } = useLiveSponsors();
   const [sponsor, setSponsor] = useState<Sponsor | null>(null);
 
   useEffect(() => {
-    const pool = activeDigitalSponsors(getSponsors(courseId));
-    if (pool.length > 0) {
-      setSponsor(pool[Math.floor(Math.random() * pool.length)]);
-    }
-  }, [courseId]);
+    const pool = activeDigitalSponsors(sponsors);
+    setSponsor(
+      pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null,
+    );
+  }, [sponsors]);
 
   if (!sponsor) return null;
 

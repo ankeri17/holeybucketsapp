@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { getCourse } from "@/config/courses";
 import { holePar } from "@/lib/course";
+import { useLiveCourse, useLiveSponsors } from "@/lib/liveData";
+import { holeSponsors } from "@/lib/sheets";
 import { loadRound, saveRound } from "@/lib/storage";
 import {
   getHoleScore,
@@ -14,8 +16,7 @@ import {
   playerBalls,
 } from "@/lib/scoring";
 import { ChipInIcon, FoliageIcon } from "@/components/icons";
-import { HoleSponsorBand } from "@/components/sponsors/HoleSponsorBand";
-import { DEFAULT_PAR, type HoleScore, type Round } from "@/lib/types";
+import type { HoleScore, Round } from "@/lib/types";
 
 /** Fallback tee photo when a hole has none (generic, any course). */
 const TEE_PLACEHOLDER = "/placeholder-tee.svg";
@@ -39,7 +40,11 @@ export default function PlayRoundPage() {
   const [holeIndex, setHoleIndex] = useState(0);
   const holeStripRef = useRef<HTMLDivElement>(null);
 
-  const course = round ? getCourse(round.courseId) : undefined;
+  // The course, live from the owner's Google Sheet when connected (fresh
+  // names/photos/sponsors), built-in config otherwise.
+  const { course: liveCourse } = useLiveCourse(round?.courseId);
+  const { sponsors } = useLiveSponsors();
+  const course = round ? liveCourse : undefined;
 
   useEffect(() => {
     const stored = loadRound(params.roundId);
@@ -91,16 +96,8 @@ export default function PlayRoundPage() {
     (playerId: string, holeNumber: number, changes: Partial<HoleScore>) => {
       setRound((prev) => {
         if (!prev) return prev;
-        // Fallback for an edit that lands before the auto-seed effect has
-        // scored this hole: start from the hole's real par, not a literal 3.
-        const holeForNumber = getCourse(prev.courseId)?.holes.find(
-          (h) => h.number === holeNumber,
-        );
         const existing =
-          prev.scores[playerId]?.[holeNumber] ??
-          ({
-            strokes: holeForNumber ? holePar(holeForNumber) : DEFAULT_PAR,
-          } as HoleScore);
+          prev.scores[playerId]?.[holeNumber] ?? ({ strokes: 3 } as HoleScore);
         const next: Round = {
           ...prev,
           scores: {
@@ -184,6 +181,7 @@ export default function PlayRoundPage() {
   const isFirst = holeIndex === 0;
   const isLast = holeIndex === course.holes.length - 1;
   const board = standings(round, course);
+  const sponsor = holeSponsors(sponsors).get(hole.number);
 
   return (
     <main className="mx-auto min-h-screen max-w-md px-4 pb-28 pt-4">
@@ -254,22 +252,28 @@ export default function PlayRoundPage() {
             <h1 className="font-display text-2xl font-extrabold">{hole.name}</h1>
           )}
           <div className="mt-1 flex flex-wrap gap-x-4 text-sm opacity-90">
-            {hole.distanceYards != null && (
-              <span>{hole.distanceYards} yds</span>
+            {hole.distance != null && (
+              <span>
+                {hole.distance} {course.distanceUnit ?? "paces"}
+              </span>
             )}
             {hole.hazards && (
               <span className="font-semibold">Heads up: {hole.hazards}</span>
             )}
           </div>
+          {hole.teeLocation && (
+            <p className="mt-1 text-sm opacity-90">Tee: {hole.teeLocation}</p>
+          )}
           {hole.note && (
             <p className="mt-1 text-sm italic opacity-80">{hole.note}</p>
           )}
+          {sponsor && (
+            <p className="mt-1.5 text-xs font-semibold uppercase tracking-wide opacity-80">
+              Hole sponsored by {sponsor.name}
+            </p>
+          )}
         </div>
       </section>
-
-      {/* Hole sponsor credit — quiet, under the header, never in the way of
-          score entry. Renders nothing when this hole has no active sponsor. */}
-      <HoleSponsorBand courseId={course.id} holeNumber={hole.number} />
 
       {/* Player scorers */}
       <div className="mt-4 space-y-3 tabular-nums">
