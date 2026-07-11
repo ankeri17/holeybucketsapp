@@ -245,8 +245,8 @@ export default function PlayRoundPage() {
             <h1 className="font-display text-2xl font-extrabold">{hole.name}</h1>
           )}
           <div className="mt-1 flex flex-wrap gap-x-4 text-sm opacity-90">
-            {hole.distancePaces != null && (
-              <span>{hole.distancePaces} paces</span>
+            {hole.distanceYards != null && (
+              <span>{hole.distanceYards} yds</span>
             )}
             {hole.hazards && (
               <span className="font-semibold">Heads up: {hole.hazards}</span>

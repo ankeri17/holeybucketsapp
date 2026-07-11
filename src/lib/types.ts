@@ -13,7 +13,12 @@
  * ----------------------------------------------------------------------------
  */
 
-/** Bucket golf rule: every hole is a par 3 (3 shots to hit the bucket). */
+/**
+ * The par used when a hole doesn't set its own. Most bucket golf holes are
+ * par 3, but a hole's real par comes from the course worksheet — the Grey Duck
+ * mixes par 2s, 3s, and 4s — so always read par via holePar() in
+ * src/lib/course.ts, never assume 3.
+ */
 export const DEFAULT_PAR = 3;
 
 /**
@@ -44,10 +49,10 @@ export interface Hole {
   number: number;
   /** Optional fun name, e.g. "The Outhouse". */
   name?: string;
-  /** Par for this hole. Defaults to DEFAULT_PAR (3) when omitted. */
+  /** Par for this hole (the worksheet has 2s, 3s, and 4s). Defaults to DEFAULT_PAR (3) when omitted. */
   par?: number;
-  /** Optional distance from tee to bucket, measured in paces. */
-  distancePaces?: number;
+  /** Optional distance from tee to bucket, in yards (per the owner worksheet). */
+  distanceYards?: number;
   /** Optional free-text description of hazards (bushes, water, the deck...). */
   hazards?: string;
   /** Optional difficulty ranking, 1 = hardest. Used by the Phase 2 handicap. */
@@ -93,6 +98,15 @@ export interface Course {
   trackBalls?: boolean;
   /** Optional hero image URL for the course page (from the owner worksheet). */
   heroImage?: string;
+  /**
+   * Optional out-of-bounds / safety notes for the whole course — what players
+   * should NOT aim at (from the worksheet's Course Info tab).
+   */
+  outOfBounds?: string;
+  /** Optional course-specific house rules, e.g. "Tee off from the mat". */
+  houseRules?: string;
+  /** Optional note on where a group starts, e.g. "Start at hole 1 or 10". */
+  startingTee?: string;
   /** The holes, in play order. */
   holes: Hole[];
 }

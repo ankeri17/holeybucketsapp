@@ -30,9 +30,9 @@ You don't need to be a developer to change these:
    and the "Book your round" button link. Change it here and the whole app
    re-skins. It's heavily commented.
 2. **`src/config/courses/osceola.ts`** — the Osceola holes (names, distances,
-   hazards, notes). It's the one file to edit to set up the real course; the
-   values in there now are placeholders until the owner's worksheet arrives.
-   Dropping in the real layout is a one-file change — nothing else moves.
+   pars, hazards, notes). It now carries the real Grey Duck layout from the
+   owner's worksheet (18 holes, mixed pars 2–4, distances in yards). Editing
+   the course is a one-file change — nothing else moves.
 
 ## Run it on your computer
 
@@ -61,7 +61,9 @@ so a broken change can't reach the live site.
 The scoring rules live in one file — `src/lib/scoring.ts` — and every screen,
 the PDF, and the share image read from it. As encoded today:
 
-- **Every hole is a par 3.**
+- **Each hole plays to its own par** from the course data — the Grey Duck
+  mixes par 2s, 3s, and 4s (total par 54). A hole that doesn't set a par
+  counts as par 3.
 - **Hole score** = strokes taken, **minus 1** if you chipped the ball into the
   bucket, **plus 1 per penalty** (foliage, water, out of bounds, lost ball).
 - A hole score can be **zero** (chip in on your very first throw), but never
@@ -92,9 +94,11 @@ If any of these don't match how the game is really played, the fix goes in
 
 Things to do before pointing real players at this:
 
-- [ ] Replace the placeholder holes in `src/config/courses/osceola.ts` with
-      the owner's real course worksheet (names, paces, hazards, photos).
-- [ ] Drop the real course + tee photos into `public/courses/grayduck/`.
+- [x] Replace the placeholder holes in `src/config/courses/osceola.ts` with
+      the owner's real course worksheet (names, yards, pars). Still missing
+      from the worksheet: per-hole hazards, difficulty ranks, and tips.
+- [ ] Drop the real course + tee photos into `public/courses/grayduck/`
+      (Scotty's walk-through photos need hole-order confirmation first).
 - [ ] Point `siteUrl` in `src/config/branding.ts` at the real domain — it's
       baked into every shared result image, permanently.
 - [ ] Set the real booking/contact URL in `bookingCta` (used by Milestone 7).
