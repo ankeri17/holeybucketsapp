@@ -1,10 +1,4 @@
-import type {
-  Course,
-  Hole,
-  Sponsor,
-  SponsorStatus,
-  SponsorTier,
-} from "./types";
+import type { Course, Hole, Sponsor, SponsorTier } from "./types";
 
 /**
  * ============================================================================
@@ -153,7 +147,7 @@ export function courseFromSheets(
   holeDetailsCsv: string,
 ): CourseSheetResult {
   const warnings: string[] = [];
-  const { holes, distanceUnit } = parseHoleDetails(holeDetailsCsv, warnings);
+  const { holes } = parseHoleDetails(holeDetailsCsv, warnings);
   const info = courseInfoCsv ? parseCourseInfo(courseInfoCsv) : {};
 
   if (holes.length === 0) {
@@ -175,27 +169,19 @@ export function courseFromSheets(
     }
     seen.add(hole.number);
   }
-  const missingDistance = holes.filter((h) => h.distance == null).length;
+  const missingDistance = holes.filter((h) => h.distanceYards == null).length;
   if (missingDistance > 0) {
     warnings.push(`${missingDistance} hole(s) have no distance yet.`);
   }
 
   return {
-    course: {
-      ...base,
-      ...info,
-      distanceUnit: distanceUnit ?? base.distanceUnit,
-      holes,
-    },
+    course: { ...base, ...info, holes },
     warnings,
   };
 }
 
 /** Find the Hole Details header row and map its columns, then read the holes. */
-function parseHoleDetails(
-  csv: string,
-  warnings: string[],
-): { holes: Hole[]; distanceUnit?: Course["distanceUnit"] } {
+function parseHoleDetails(csv: string, warnings: string[]): { holes: Hole[] } {
   const rows = parseCsv(csv);
 
   // The tab has a banner row above the real header — find the header by its
@@ -224,13 +210,15 @@ function parseHoleDetails(
   const noteCol = col((c) => c.startsWith("tip") || c === "note");
   const photoCol = col((c) => c.includes("photo") && (c.includes("url") || c.includes("link")));
 
-  // The distance header itself says what unit was used: "Distance (yds)".
+  // The app measures distance in yards (Hole.distanceYards). The worksheet's
+  // header says what was actually recorded — flag it if it isn't yards.
   const distanceHeader = distanceCol >= 0 ? header[distanceCol] : "";
-  const distanceUnit = distanceHeader.includes("yd")
-    ? ("yards" as const)
-    : distanceHeader.includes("pace")
-      ? ("paces" as const)
-      : undefined;
+  if (distanceHeader.includes("pace")) {
+    warnings.push(
+      'The sheet\'s distance column says "paces", but the app shows yards — ' +
+        "re-measure or relabel the column when convenient.",
+    );
+  }
 
   const holes: Hole[] = [];
   for (const row of rows.slice(headerIndex + 1)) {
@@ -240,7 +228,7 @@ function parseHoleDetails(
     const name = cellText(row[nameCol]);
     if (name) hole.name = name;
     const distance = cellInt(row[distanceCol]);
-    if (distance != null) hole.distance = distance;
+    if (distance != null) hole.distanceYards = distance;
     const par = cellInt(row[parCol]);
     if (par != null && par >= 1 && par <= 9) hole.par = par;
     const hazards = cellText(row[hazardsCol]);
@@ -263,7 +251,7 @@ function parseHoleDetails(
     );
   }
 
-  return { holes, distanceUnit };
+  return { holes };
 }
 
 /**
@@ -294,23 +282,35 @@ function parseCourseInfo(csv: string): Partial<Course> {
  * SPONSORS  (Sponsor Pipeline tab, or a slimmed-down public sheet)
  * ------------------------------------------------------------------------- */
 
-const STATUS_MAP: Record<string, SponsorStatus> = {
-  lead: "lead",
-  contacted: "contacted",
-  "verbal yes": "verbalYes",
-  paid: "paid",
-  active: "active",
-  lapsed: "lapsed",
-  renewed: "renewed",
-  declined: "declined",
-};
+/**
+ * A sponsor row as read from the sheet: a real app Sponsor (the shape every
+ * placement component and the PDF consume — see src/lib/sponsors.ts), plus
+ * the raw pipeline stage for the admin panel. The app's binary
+ * active/lapsed status is derived: only "Active" and "Renewed" rows show
+ * to players; every other stage (Lead, Contacted, Verbal Yes, Paid, …) is
+ * treated as lapsed, i.e. hidden.
+ */
+export interface SheetSponsor extends Sponsor {
+  /** The tracker's pipeline stage as written, e.g. "Verbal Yes". */
+  pipeline: string;
+}
+
+/** "Osceola Hardware!" → "osceola-hardware" (a stable Sponsor id). */
+function slugify(name: string): string {
+  return (
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "sponsor"
+  );
+}
 
 /**
  * Read sponsor rows from the tracker. Deliberately narrow: only the
  * public-safe columns are ever read (never email/phone), and rows marked
  * "SAMPLE ROW" anywhere are skipped.
  */
-export function sponsorsFromSheet(csv: string): Sponsor[] {
+export function sponsorsFromSheet(csv: string): SheetSponsor[] {
   const rows = parseCsv(csv);
 
   let headerIndex = -1;
@@ -337,45 +337,39 @@ export function sponsorsFromSheet(csv: string): Sponsor[] {
     (c) => c.includes("logo") && (c.includes("url") || c.includes("link")),
   );
 
-  const sponsors: Sponsor[] = [];
+  const sponsors: SheetSponsor[] = [];
   for (const row of rows.slice(headerIndex + 1)) {
     const name = cellText(row[nameCol]);
     if (!name) continue;
     if (row.some((c) => c.toLowerCase().includes("sample row"))) continue;
 
-    const holeNumber = cellInt(row[holeCol]);
+    const holeId = cellInt(row[holeCol]);
     const tierRaw = norm(row[tierCol] ?? "");
     const tier: SponsorTier = tierRaw.includes("hole")
       ? "hole"
       : tierRaw.includes("digital")
         ? "digital"
-        : holeNumber != null
+        : holeId != null
           ? "hole"
           : "digital";
-    const status: SponsorStatus = STATUS_MAP[norm(row[statusCol] ?? "")] ?? "unknown";
+    const pipeline = cellText(row[statusCol]) ?? "unknown";
+    const stage = norm(pipeline);
 
-    const sponsor: Sponsor = { name, tier, status };
-    if (holeNumber != null) sponsor.holeNumber = holeNumber;
+    const sponsor: SheetSponsor = {
+      id: slugify(name),
+      name,
+      tier,
+      // The tracker's whole pipeline maps onto the app's binary switch:
+      // Active/Renewed → show; anything else → hidden (= "lapsed").
+      status: stage === "active" || stage === "renewed" ? "active" : "lapsed",
+      pipeline,
+    };
+    if (holeId != null) sponsor.holeId = holeId;
     const website = cellText(row[websiteCol]);
-    if (website) sponsor.website = website;
+    if (website) sponsor.url = website;
     const logo = cellText(row[logoCol]);
     if (logo) sponsor.logoUrl = driveImageUrl(logo);
     sponsors.push(sponsor);
   }
   return sponsors;
-}
-
-/** The sponsors players should actually see in the app right now. */
-export function activeSponsors(sponsors: Sponsor[]): Sponsor[] {
-  return sponsors.filter((s) => s.status === "active" || s.status === "renewed");
-}
-
-/** Active hole sponsors by hole number (first one wins if a hole is double-sold). */
-export function holeSponsors(sponsors: Sponsor[]): Map<number, Sponsor> {
-  const map = new Map<number, Sponsor>();
-  for (const sponsor of activeSponsors(sponsors)) {
-    if (sponsor.tier !== "hole" || sponsor.holeNumber == null) continue;
-    if (!map.has(sponsor.holeNumber)) map.set(sponsor.holeNumber, sponsor);
-  }
-  return map;
 }

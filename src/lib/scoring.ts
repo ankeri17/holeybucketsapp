@@ -7,7 +7,8 @@ import { holePar } from "./course";
  * ============================================================================
  *
  * The rules, encoded once so every screen agrees:
- *   - Every hole is a par 3.
+ *   - Each hole plays to its own par from the course data (the Grey Duck
+ *     mixes par 2s, 3s, and 4s). A hole with no par set counts as par 3.
  *   - Net score for a hole = strokes
  *                            − 1 if you chipped INTO the bucket (the bonus)
  *                            + 1 per penalty (foliage/water/OB/lost ball)

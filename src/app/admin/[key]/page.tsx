@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { holePar, coursePar } from "@/lib/course";
 import { useLiveCourse, useLiveSponsors, type LiveStatus } from "@/lib/liveData";
-import { activeSponsors, holeSponsors } from "@/lib/sheets";
+import { holeSponsor, validateSponsors } from "@/lib/sponsors";
+import type { SheetSponsor } from "@/lib/sheets";
 import { sheetsConfig } from "@/config/sheets";
-import type { Sponsor, SponsorStatus } from "@/lib/types";
 
 /**
  * ============================================================================
@@ -26,18 +26,6 @@ import type { Sponsor, SponsorStatus } from "@/lib/types";
  *   - links straight into the sheets and the Drive photos folder to edit
  * ----------------------------------------------------------------------------
  */
-
-const PIPELINE_LABELS: Record<SponsorStatus, string> = {
-  lead: "Lead",
-  contacted: "Contacted",
-  verbalYes: "Verbal yes",
-  paid: "Paid",
-  active: "Active",
-  lapsed: "Lapsed",
-  renewed: "Renewed",
-  declined: "Declined",
-  unknown: "Unknown status",
-};
 
 export default function AdminPage() {
   const params = useParams<{ key: string }>();
@@ -70,29 +58,19 @@ function AdminPanel() {
 
   if (!course) return null; // can't happen for the default course
 
-  const unit = course.distanceUnit ?? "paces";
-  const live = activeSponsors(sponsors);
-  const sponsorByHole = holeSponsors(sponsors);
+  // Same rule as activeSponsors in lib/sponsors, kept as SheetSponsor[] so
+  // the rows can show their pipeline stage.
+  const live = sponsors.filter((s) => s.status === "active");
 
-  // Extra data-quality checks that need both sheets at once.
+  // The same loud validation the config sponsors get at build time (double-
+  // sold holes, a holeId that isn't on the course, duplicate ids) — but for
+  // sheet data it can't be allowed to crash a page, so it lands here as a
+  // warning instead.
   const sponsorWarnings: string[] = [];
-  const holeNumbers = new Set(course.holes.map((h) => h.number));
-  const seenHole = new Map<number, string>();
-  for (const sponsor of live) {
-    if (sponsor.tier !== "hole" || sponsor.holeNumber == null) continue;
-    const already = seenHole.get(sponsor.holeNumber);
-    if (already) {
-      sponsorWarnings.push(
-        `Hole ${sponsor.holeNumber} has two active sponsors: ${already} and ${sponsor.name}. A hole can only have one.`,
-      );
-    } else {
-      seenHole.set(sponsor.holeNumber, sponsor.name);
-    }
-    if (!holeNumbers.has(sponsor.holeNumber)) {
-      sponsorWarnings.push(
-        `${sponsor.name} sponsors hole ${sponsor.holeNumber}, but the course has no hole ${sponsor.holeNumber}.`,
-      );
-    }
+  try {
+    validateSponsors(course.id, sponsors, course);
+  } catch (err) {
+    sponsorWarnings.push(err instanceof Error ? err.message : String(err));
   }
 
   const holesWithPhotos = course.holes.filter((h) => h.teePhoto).length;
@@ -174,7 +152,7 @@ function AdminPanel() {
               <tr className="border-b border-brand-line text-left text-xs font-semibold uppercase tracking-wide text-brand-stone">
                 <th className="px-3 py-2">#</th>
                 <th className="px-3 py-2">Name</th>
-                <th className="px-3 py-2 text-right">{unit}</th>
+                <th className="px-3 py-2 text-right">Yards</th>
                 <th className="px-3 py-2 text-right">Par</th>
                 <th className="px-3 py-2">Hazards / notes</th>
                 <th className="px-3 py-2">Photo</th>
@@ -189,7 +167,7 @@ function AdminPanel() {
                     {hole.name ?? <Missing />}
                   </td>
                   <td className="px-3 py-2 text-right">
-                    {hole.distance ?? <Missing />}
+                    {hole.distanceYards ?? <Missing />}
                   </td>
                   <td className="px-3 py-2 text-right">{holePar(hole)}</td>
                   <td className="max-w-[16rem] px-3 py-2 text-brand-stone">
@@ -203,7 +181,7 @@ function AdminPanel() {
                     )}
                   </td>
                   <td className="px-3 py-2 text-brand-stone">
-                    {sponsorByHole.get(hole.number)?.name ?? "—"}
+                    {holeSponsor(sponsors, hole.number)?.name ?? "—"}
                   </td>
                 </tr>
               ))}
@@ -233,7 +211,7 @@ function AdminPanel() {
           <>
             <div className="mt-3 space-y-2">
               {live.map((sponsor) => (
-                <SponsorRow key={`${sponsor.name}-${sponsor.holeNumber ?? "d"}`} sponsor={sponsor} />
+                <SponsorRow key={sponsor.id} sponsor={sponsor} />
               ))}
               {live.length === 0 && (
                 <p className="rounded-2xl border border-brand-line bg-brand-card p-4 text-sm text-brand-stone">
@@ -439,7 +417,7 @@ function SetupCard() {
   );
 }
 
-function SponsorRow({ sponsor }: { sponsor: Sponsor }) {
+function SponsorRow({ sponsor }: { sponsor: SheetSponsor }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-2xl border border-brand-line bg-brand-card px-4 py-3 shadow-sm">
       <div className="flex min-w-0 items-center gap-3">
@@ -453,38 +431,43 @@ function SponsorRow({ sponsor }: { sponsor: Sponsor }) {
         )}
         <div className="min-w-0">
           <p className="truncate font-semibold text-brand-ink">{sponsor.name}</p>
-          {sponsor.website && (
+          {sponsor.url && (
             <a
-              href={sponsor.website}
+              href={sponsor.url}
               target="_blank"
               rel="noopener noreferrer"
               className="truncate text-xs text-brand-deepPine underline"
             >
-              {sponsor.website}
+              {sponsor.url}
             </a>
           )}
         </div>
       </div>
       <span className="shrink-0 rounded-full bg-brand-primary/10 px-2.5 py-1 text-xs font-bold text-brand-deepPine">
-        {sponsor.tier === "hole" ? `Hole ${sponsor.holeNumber ?? "?"}` : "Digital"}
+        {sponsor.tier === "hole" ? `Hole ${sponsor.holeId ?? "?"}` : "Digital"}
       </span>
     </div>
   );
 }
 
-/** Pipeline counts (everything not live in the app), so this doubles as a glance at sales. */
-function PipelineSummary({ sponsors }: { sponsors: Sponsor[] }) {
-  const counts = new Map<SponsorStatus, number>();
+/**
+ * Counts of everyone NOT live in the app, grouped by the tracker's own
+ * pipeline stage ("2 lead · 1 verbal yes"), so this doubles as a glance at
+ * sponsor sales.
+ */
+function PipelineSummary({ sponsors }: { sponsors: SheetSponsor[] }) {
+  const counts = new Map<string, number>();
   for (const sponsor of sponsors) {
-    if (sponsor.status === "active" || sponsor.status === "renewed") continue;
-    counts.set(sponsor.status, (counts.get(sponsor.status) ?? 0) + 1);
+    if (sponsor.status === "active") continue;
+    const stage = sponsor.pipeline.toLowerCase();
+    counts.set(stage, (counts.get(stage) ?? 0) + 1);
   }
   if (counts.size === 0) return null;
   return (
     <p className="mt-3 text-sm text-brand-stone">
       Also in the pipeline:{" "}
       {[...counts.entries()]
-        .map(([status, count]) => `${count} ${PIPELINE_LABELS[status].toLowerCase()}`)
+        .map(([stage, count]) => `${count} ${stage}`)
         .join(" · ")}
       .
     </p>

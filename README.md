@@ -21,6 +21,9 @@ The complete MVP play loop, all running on the player's phone with no backend:
 the landing page, a course preview, the start-a-round flow, the scoring screen
 (with chip-in bonus, penalty counter, and per-ball tracking), a live
 leaderboard, branded results with a shareable image, and PDF scorecards.
+Sponsor placements are in too: a "Hole presented by" band on sponsored holes, a
+rotating sponsor slot on the home and results screens, and sponsor credits on
+the printed scorecards (sample sponsors for now).
 
 ## The three files you'll most likely want to edit
 
@@ -30,10 +33,18 @@ You don't need to be a developer to change these:
    and the "Book your round" button link. Change it here and the whole app
    re-skins. It's heavily commented.
 2. **`src/config/courses/osceola.ts`** — the Osceola holes (names, distances,
-   pars, hazards, notes). This now carries the REAL Gray Duck layout from the
-   owner's worksheet, and acts as the app's built-in fallback copy.
-3. **`src/config/sheets.ts`** — connects the app to the Google Sheets the
-   course is run from, and sets the secret admin URL (see below).
+   pars, hazards, notes). It now carries the real Grey Duck layout from the
+   owner's worksheet (18 holes, mixed pars 2–4, distances in yards). Editing
+   the course is a one-file change — nothing else moves.
+3. **`src/config/sponsors/osceola.ts`** — the Grey Duck's sponsors. Adding a
+   sponsor = one block in this file + their logo dropped into
+   `public/sponsors/`. When a sponsor stops paying, change their `status` to
+   `"lapsed"` and that one edit removes them from the app AND the printed
+   scorecards. The sponsors in there now are made-up samples.
+4. **`src/config/sheets.ts`** — connects the app to the Google Sheets the
+   course is run from, and sets the secret admin URL (see below). When the
+   sheets are connected they become the live source of truth, and the two
+   config files above act as the built-in fallback.
 
 ## The admin panel (for Scotty & staff)
 
@@ -68,7 +79,7 @@ the player's browser — no server and no API keys. A sheet just has to be a
 native Google Sheet shared as "Anyone with the link (Viewer)"; paste its ID
 into `src/config/sheets.ts` and edits in the sheet show up in the app on
 refresh. Until a sheet is connected (or whenever it's unreachable), the app
-quietly runs on the built-in course data — the play loop can never be taken
+quietly runs on the built-in config data — the play loop can never be taken
 down by a spreadsheet. Only "Active" sponsors are shown to players, and the
 app never reads sponsor contact columns (see the privacy note in
 `src/config/sheets.ts`).
@@ -100,8 +111,9 @@ so a broken change can't reach the live site.
 The scoring rules live in one file — `src/lib/scoring.ts` — and every screen,
 the PDF, and the share image read from it. As encoded today:
 
-- **Par comes from the course data** (default 3 — The Gray Duck has a few
-  par 2s and par 4s).
+- **Each hole plays to its own par** from the course data — the Grey Duck
+  mixes par 2s, 3s, and 4s (total par 54). A hole that doesn't set a par
+  counts as par 3.
 - **Hole score** = strokes taken, **minus 1** if you chipped the ball into the
   bucket, **plus 1 per penalty** (foliage, water, out of bounds, lost ball).
 - A hole score can be **zero** (chip in on your very first throw), but never
@@ -133,16 +145,19 @@ If any of these don't match how the game is really played, the fix goes in
 Things to do before pointing real players at this:
 
 - [x] Replace the placeholder holes in `src/config/courses/osceola.ts` with
-      the owner's real course worksheet (names, yards, pars).
+      the owner's real course worksheet (names, yards, pars). Still missing
+      from the worksheet: per-hole hazards, difficulty ranks, and tips.
+- [ ] Drop the real course + tee photos into `public/courses/grayduck/`
+      (Scotty's walk-through photos need hole-order confirmation first).
 - [ ] Connect the course + sponsor Google Sheets in `src/config/sheets.ts`
       (steps are shown in the admin panel).
 - [ ] Change the default `adminKey` in `src/config/sheets.ts` and share the
       admin URL with staff.
-- [ ] Add the real course + tee photos (Drive links via the sheet's
-      Photo URL column, or files in `public/courses/grayduck/`).
 - [ ] Point `siteUrl` in `src/config/branding.ts` at the real domain — it's
       baked into every shared result image, permanently.
 - [ ] Set the real booking/contact URL in `bookingCta` (used by Milestone 7).
+- [ ] Replace the sample sponsors in `src/config/sponsors/osceola.ts` with real
+      ones (or set them all to `"lapsed"` to launch sponsor-free).
 - [ ] Confirm the house rules above with the owner — especially the
       zero-score chip-in and default-to-par behaviors.
 
@@ -175,7 +190,7 @@ terminal to deploy:
 1. ✅ Scaffold + deploy a near-empty app to Netlify.
 2. ✅ Course data model + placeholder Osceola course from config (view at `/course`).
 3. ✅ Start-a-round flow (group name, add players, pick format).
-4. ✅ Scoring screen (big +/−, bucket-chip toggle, foliage penalty, live totals).
+4. ✅ Scoring screen (big +/−, bucket-chip toggle, penalty counter, live totals).
 5. ✅ Branded results + final scorecard + shareable image.
 6. ✅ PDF scorecard generator (blank + completed round).
 7. ⬜ Email capture + booking link + brand polish.

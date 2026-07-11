@@ -1,14 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
-  activeSponsors,
   assertCsvResponse,
   courseFromSheets,
   driveImageUrl,
-  holeSponsors,
   parseCsv,
   sheetCsvUrl,
   sponsorsFromSheet,
 } from "./sheets";
+import { activeSponsors, holeSponsor } from "./sponsors";
 import type { Course } from "./types";
 
 /* ----------------------------------------------------------------------------
@@ -45,13 +44,12 @@ const SPONSOR_CSV = [
 
 const BASE: Course = {
   id: "osceola",
-  name: "The Gray Duck",
+  name: "Grey Duck",
   code: "grayduck",
-  location: "Osceola, WI",
+  location: "Osceola, Wisconsin",
   host: "Hello Again Properties",
   trackBalls: true,
   heroImage: "/courses/grayduck/hero.svg",
-  distanceUnit: "yards",
   holes: [{ number: 1 }, { number: 2 }, { number: 3 }],
 };
 
@@ -116,11 +114,15 @@ describe("courseFromSheets", () => {
   it("reads holes from the real worksheet layout", () => {
     const { course } = courseFromSheets(BASE, COURSE_INFO_CSV, HOLE_DETAILS_CSV);
     expect(course.holes).toHaveLength(3);
-    expect(course.holes[0]).toMatchObject({ number: 1, name: "Big Shot", distance: 30 });
+    expect(course.holes[0]).toMatchObject({
+      number: 1,
+      name: "Big Shot",
+      distanceYards: 30,
+    });
     expect(course.holes[1]).toMatchObject({
       number: 3,
       name: "Them Apples",
-      distance: 17,
+      distanceYards: 17,
       par: 2,
       hazards: "Apple trees, right",
       difficultyRank: 2,
@@ -130,10 +132,8 @@ describe("courseFromSheets", () => {
     expect(course.holes[2].par).toBe(4);
   });
 
-  it("takes the distance unit from the header and course info from its tab", () => {
-    const paceBase = { ...BASE, distanceUnit: "paces" as const };
-    const { course } = courseFromSheets(paceBase, COURSE_INFO_CSV, HOLE_DETAILS_CSV);
-    expect(course.distanceUnit).toBe("yards"); // "Distance (yds)" wins over the base
+  it("reads course info from its tab", () => {
+    const { course } = courseFromSheets(BASE, COURSE_INFO_CSV, HOLE_DETAILS_CSV);
     expect(course.name).toBe("Grey Duck");
     expect(course.location).toBe("Osceola, Wisconsin");
     expect(course.outOfBounds).toBe("OB: Farmer Field, Road, Driveway, Tall Brush");
@@ -159,16 +159,22 @@ describe("courseFromSheets", () => {
     expect(warnings.join(" ")).toMatch(/Photo URL/);
   });
 
+  it("warns when the sheet measured paces instead of yards", () => {
+    const csv = ['"Hole","Distance (paces)"', '"1","12"'].join("\n");
+    const { course, warnings } = courseFromSheets(BASE, null, csv);
+    expect(course.holes[0].distanceYards).toBe(12);
+    expect(warnings.join(" ")).toMatch(/paces/);
+  });
+
   it("reads a Photo URL column and converts Drive links", () => {
     const csv = [
-      '"Hole","Distance (paces)","Photo URL"',
+      '"Hole","Distance (yds)","Photo URL"',
       '"1","12","https://drive.google.com/file/d/1PhotoIdAbc123/view"',
     ].join("\n");
     const { course } = courseFromSheets(BASE, null, csv);
     expect(course.holes[0].teePhoto).toBe(
       "https://lh3.googleusercontent.com/d/1PhotoIdAbc123",
     );
-    expect(course.distanceUnit).toBe("paces");
   });
 
   it("throws a fixable error when no hole rows are found", () => {
@@ -179,7 +185,7 @@ describe("courseFromSheets", () => {
 });
 
 describe("sponsorsFromSheet", () => {
-  it("reads only public-safe fields and skips sample rows", () => {
+  it("maps rows to app sponsors (public-safe fields only) and skips samples", () => {
     const sponsors = sponsorsFromSheet(SPONSOR_CSV);
     expect(sponsors.map((s) => s.name)).toEqual([
       "Osceola Hardware",
@@ -192,23 +198,26 @@ describe("sponsorsFromSheet", () => {
       expect(JSON.stringify(sponsor)).not.toMatch(/@|715-/);
     }
     expect(sponsors[0]).toEqual({
+      id: "osceola-hardware",
       name: "Osceola Hardware",
       tier: "hole",
       status: "active",
-      holeNumber: 7,
+      holeId: 7,
+      pipeline: "Active",
     });
-    expect(sponsors[2].status).toBe("verbalYes");
+    // Pipeline stages that aren't live map to the app's "hidden" status but
+    // keep their stage label for the admin panel.
+    expect(sponsors[2]).toMatchObject({ status: "lapsed", pipeline: "Verbal Yes" });
   });
 
-  it("filters to what players should see and maps hole sponsors", () => {
+  it("plugs into the app's own sponsor helpers", () => {
     const sponsors = sponsorsFromSheet(SPONSOR_CSV);
     expect(activeSponsors(sponsors).map((s) => s.name)).toEqual([
       "Osceola Hardware",
       "River Coffee",
     ]);
-    const byHole = holeSponsors(sponsors);
-    expect(byHole.get(7)?.name).toBe("Osceola Hardware");
-    expect(byHole.has(12)).toBe(false); // verbal yes ≠ live in the app
+    expect(holeSponsor(sponsors, 7)?.name).toBe("Osceola Hardware");
+    expect(holeSponsor(sponsors, 12)).toBeUndefined(); // verbal yes ≠ live
   });
 
   it("throws a fixable error when the header row is missing", () => {

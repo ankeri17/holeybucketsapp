@@ -2,14 +2,16 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { defaultCourse, getCourse } from "@/config/courses";
+import { getSponsors } from "@/config/sponsors";
 import { sheetsConfig } from "@/config/sheets";
 import {
   assertCsvResponse,
   courseFromSheets,
   sheetCsvUrl,
   sponsorsFromSheet,
+  type SheetSponsor,
 } from "./sheets";
-import type { Course, Sponsor } from "./types";
+import type { Course } from "./types";
 
 /**
  * ============================================================================
@@ -103,13 +105,32 @@ export async function fetchSheetCourse(): Promise<{
   return courseFromSheets(defaultCourse, infoCsv, holesCsv);
 }
 
-/** Fetch and parse the sponsor sheet (ALL rows; filter with activeSponsors). */
+/** Fetch and parse the sponsor sheet (ALL pipeline rows; only "active" ones show). */
 export async function fetchSheetSponsors(): Promise<{
-  sponsors: Sponsor[];
+  sponsors: SheetSponsor[];
   warnings: string[];
 }> {
   const csv = await fetchTabCsv(sheetsConfig.sponsorSheetId, sheetsConfig.sponsorTab);
   return { sponsors: sponsorsFromSheet(csv), warnings: [] };
+}
+
+/** The config sponsors in SheetSponsor clothing (pipeline = their status). */
+function configSponsors(courseId: string): SheetSponsor[] {
+  return getSponsors(courseId).map((s) => ({ ...s, pipeline: s.status }));
+}
+
+/**
+ * Synchronous snapshot of the sponsors every placement should use right now:
+ * the last good sheet copy when a sponsor sheet is connected, the config
+ * sponsors otherwise. For code that can't run a hook (the PDF generator);
+ * components use useLiveSponsors instead.
+ */
+export function currentSponsors(courseId: string): SheetSponsor[] {
+  if (!sheetsConfig.sponsorSheetId || courseId !== defaultCourse.id) {
+    return configSponsors(courseId);
+  }
+  const cached = readCache<SheetSponsor[]>(SPONSOR_CACHE_KEY);
+  return cached ? cached.data : configSponsors(courseId);
 }
 
 /* ----------------------------------------------------------------------------
@@ -249,16 +270,25 @@ export function useLiveCourse(courseId?: string): LiveCourse {
 }
 
 export interface LiveSponsors {
-  /** Every row from the sheet (all pipeline states). */
-  sponsors: Sponsor[];
+  /** Every sponsor row (all pipeline stages — filter with lib/sponsors helpers). */
+  sponsors: SheetSponsor[];
   warnings: string[];
   status: LiveStatus;
   refresh: () => void;
 }
 
-/** Sponsor rows, live from the sponsor sheet. Empty until a sheet is connected. */
-export function useLiveSponsors(): LiveSponsors {
+/**
+ * A course's sponsors — live from the sponsor sheet when one is connected,
+ * the config sponsors (src/config/sponsors/) otherwise. Same contract as
+ * getSponsors: every status comes back; use the src/lib/sponsors helpers to
+ * pick the active ones.
+ */
+export function useLiveSponsors(courseId?: string): LiveSponsors {
+  const id = courseId ?? defaultCourse.id;
   const configured = sheetsConfig.sponsorSheetId.length > 0;
+  // The sponsor sheet belongs to the flagship course; other (future) courses
+  // render their config sponsors untouched.
+  const enabled = id === defaultCourse.id;
   const [refreshToken, setRefreshToken] = useState(0);
   const refresh = useCallback(() => setRefreshToken((t) => t + 1), []);
 
@@ -267,11 +297,11 @@ export function useLiveSponsors(): LiveSponsors {
     return { data: sponsors, warnings };
   }, []);
 
-  const state = useSheetData<Sponsor[]>(
-    [],
+  const state = useSheetData<SheetSponsor[]>(
+    configSponsors(id),
     SPONSOR_CACHE_KEY,
     configured,
-    true,
+    enabled,
     fetcher,
     refreshToken,
   );

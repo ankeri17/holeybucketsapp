@@ -14,3 +14,11 @@ export function holePar(hole: Hole): number {
 export function coursePar(course: Course): number {
   return course.holes.reduce((total, hole) => total + holePar(hole), 0);
 }
+
+/** Total measured length of a course, in yards (holes without a distance count 0). */
+export function courseYards(course: Course): number {
+  return course.holes.reduce(
+    (total, hole) => total + (hole.distanceYards ?? 0),
+    0,
+  );
+}

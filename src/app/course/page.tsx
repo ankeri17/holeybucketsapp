@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { holePar, coursePar } from "@/lib/course";
-import { useLiveCourse, useLiveSponsors } from "@/lib/liveData";
-import { activeSponsors, holeSponsors } from "@/lib/sheets";
+import { defaultCourse } from "@/config/courses";
+import { holePar, coursePar, courseYards } from "@/lib/course";
+import { useLiveCourse } from "@/lib/liveData";
 import { PrintBlankButton } from "@/components/PrintBlankButton";
 
 /** Fallback tee thumbnail when a hole has no photo yet (generic, any course). */
@@ -13,18 +13,13 @@ const TEE_PLACEHOLDER = "/placeholder-tee.svg";
  * Course preview page.
  *
  * Renders the active course — live from the owner's Google Sheet when one is
- * connected (see src/config/sheets.ts), with the built-in config as the
- * always-works fallback. Hero image, per-hole tee photos, difficulty, and
- * sponsors all come from the course/worksheet data.
+ * connected (see src/config/sheets.ts), from config (src/config/courses/)
+ * otherwise. Hero image, per-hole tee photos, and difficulty come from the
+ * course/worksheet data.
  */
 export default function CoursePage() {
-  const { course } = useLiveCourse();
-  const { sponsors } = useLiveSponsors();
-
-  if (!course) return null; // can't happen for the default course
-  const unit = course.distanceUnit ?? "paces";
-  const sponsorByHole = holeSponsors(sponsors);
-  const thanks = activeSponsors(sponsors);
+  const course = useLiveCourse().course ?? defaultCourse;
+  const total = course.holes.length;
 
   return (
     <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-6">
@@ -72,29 +67,31 @@ export default function CoursePage() {
       <div className="mt-4 flex gap-3">
         <Stat value={course.holes.length} label="holes" />
         <Stat value={coursePar(course)} label="par" />
+        {courseYards(course) > 0 && (
+          <Stat value={courseYards(course)} label="yards" />
+        )}
       </div>
 
-      {/* Course-wide notes from the owner worksheet: where to start, what to
-          avoid, house rules. Only shows when there's something to say. */}
-      {(course.startingTee || course.outOfBounds || course.houseRules) && (
-        <div className="mt-4 space-y-1.5 rounded-2xl border border-brand-line bg-brand-card p-4 text-sm text-brand-stone shadow-sm">
+      {/* Course-wide notes from the owner worksheet (Course Info tab) */}
+      {(course.startingTee || course.houseRules || course.outOfBounds) && (
+        <div className="mt-4 space-y-1.5 rounded-2xl border border-brand-line bg-brand-card p-4 text-sm shadow-sm">
           <h2 className="text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
             Good to know
           </h2>
           {course.startingTee && (
-            <p>
-              <span className="font-semibold text-brand-ink">Start: </span>
+            <p className="text-brand-ink">
+              <span className="font-semibold">First tee: </span>
               {course.startingTee}
             </p>
           )}
           {course.houseRules && (
-            <p>
-              <span className="font-semibold text-brand-ink">House rule: </span>
+            <p className="text-brand-ink">
+              <span className="font-semibold">House rule: </span>
               {course.houseRules}
             </p>
           )}
           {course.outOfBounds && (
-            <p>
+            <p className="text-brand-ink">
               <span className="font-semibold text-brand-penalty">
                 Out of bounds:{" "}
               </span>
@@ -109,117 +106,72 @@ export default function CoursePage() {
       </div>
 
       <ol className="space-y-3 tabular-nums">
-        {course.holes.map((hole) => {
-          const sponsor = sponsorByHole.get(hole.number);
-          return (
-            <li
-              key={hole.number}
-              className="flex gap-3 rounded-2xl border border-brand-line bg-brand-card p-3 shadow-sm"
-            >
-              {/* Tee thumbnail with the hole number badged on it */}
-              <div className="relative h-16 w-16 shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={hole.teePhoto ?? TEE_PLACEHOLDER}
-                  alt=""
-                  className="h-16 w-16 rounded-xl object-cover"
-                />
-                <span className="absolute -left-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-brand-primary text-xs font-extrabold text-white shadow">
-                  {hole.number}
+        {course.holes.map((hole) => (
+          <li
+            key={hole.number}
+            className="flex gap-3 rounded-2xl border border-brand-line bg-brand-card p-3 shadow-sm"
+          >
+            {/* Tee thumbnail with the hole number badged on it */}
+            <div className="relative h-16 w-16 shrink-0">
+              {/* lazy: 18 real photos would otherwise load at once on a phone */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={hole.teePhoto ?? TEE_PLACEHOLDER}
+                alt=""
+                loading="lazy"
+                className="h-16 w-16 rounded-xl object-cover"
+              />
+              <span className="absolute -left-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-brand-primary text-xs font-extrabold text-white shadow">
+                {hole.number}
+              </span>
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline justify-between gap-2">
+                {hole.name && (
+                  <p className="truncate font-display font-bold text-brand-ink">
+                    {hole.name}
+                  </p>
+                )}
+                <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-brand-stone">
+                  Par {holePar(hole)}
                 </span>
               </div>
 
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline justify-between gap-2">
-                  {hole.name && (
-                    <p className="truncate font-display font-bold text-brand-ink">
-                      {hole.name}
-                    </p>
-                  )}
-                  <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-brand-stone">
-                    Par {holePar(hole)}
+              <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-sm text-brand-stone">
+                {hole.distanceYards != null && (
+                  <span>{hole.distanceYards} yds</span>
+                )}
+                {/* Only the label gets the warning color — with 15 of 18
+                    holes carrying a hazard, all-orange text made the whole
+                    page read like an alarm. */}
+                {hole.hazards && (
+                  <span>
+                    <span className="font-semibold text-brand-penalty">
+                      Heads up:{" "}
+                    </span>
+                    {hole.hazards}
                   </span>
-                </div>
-
-                <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-sm text-brand-stone">
-                  {hole.distance != null && (
-                    <span>
-                      {hole.distance} {unit}
-                    </span>
-                  )}
-                  {/* Only the label gets the warning color — with most holes
-                      carrying a hazard, all-orange text made the whole page
-                      read like an alarm. */}
-                  {hole.hazards && (
-                    <span>
-                      <span className="font-semibold text-brand-penalty">
-                        Heads up:{" "}
-                      </span>
-                      {hole.hazards}
-                    </span>
-                  )}
-                </div>
-
-                {hole.difficultyRank != null && (
-                  <DifficultyMeter rank={hole.difficultyRank} />
-                )}
-
-                {hole.note && (
-                  <p className="mt-1 text-sm italic text-brand-stone">
-                    {hole.note}
-                  </p>
-                )}
-
-                {sponsor && (
-                  <p className="mt-1 text-xs font-semibold text-brand-deepPine">
-                    Sponsored by{" "}
-                    {sponsor.website ? (
-                      <a
-                        href={sponsor.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline"
-                      >
-                        {sponsor.name}
-                      </a>
-                    ) : (
-                      sponsor.name
-                    )}
-                  </p>
                 )}
               </div>
-            </li>
-          );
-        })}
+
+              {hole.difficultyRank != null && (
+                <DifficultyMeter rank={hole.difficultyRank} total={total} />
+              )}
+
+              {hole.note && (
+                <p className="mt-1 text-sm italic text-brand-stone">
+                  {hole.note}
+                </p>
+              )}
+            </div>
+          </li>
+        ))}
       </ol>
 
-      {/* Sponsor thank-you strip — every currently-active sponsor. */}
-      {thanks.length > 0 && (
-        <section className="mt-8 rounded-2xl bg-brand-sunshine/20 p-4 text-center">
-          <h2 className="text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
-            Thanks to our sponsors
-          </h2>
-          <p className="mt-1.5 text-sm font-semibold text-brand-ink">
-            {thanks.map((sponsor, i) => (
-              <span key={sponsor.name}>
-                {i > 0 && " · "}
-                {sponsor.website ? (
-                  <a
-                    href={sponsor.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline decoration-brand-stone/40"
-                  >
-                    {sponsor.name}
-                  </a>
-                ) : (
-                  sponsor.name
-                )}
-              </span>
-            ))}
-          </p>
-        </section>
-      )}
+      <p className="mt-8 text-center text-xs text-brand-stone">
+        Tee photos are placeholders until the real course photos are added.
+      </p>
 
       {/* Sticky start CTA — browsing the course shouldn't be a dead end.
           Bottom padding respects the iPhone home-indicator safe area. */}
@@ -235,13 +187,9 @@ export default function CoursePage() {
   );
 }
 
-/**
- * A small difficulty meter (5 pips) from a hole's difficultyRank. The
- * worksheet ranks difficulty 1–5 with 1 = hardest, so rank 1 lights all
- * five pips. Values past 5 (old data) just clamp to the easiest.
- */
-function DifficultyMeter({ rank }: { rank: number }) {
-  const level = Math.max(1, Math.min(5, 6 - rank));
+/** A small difficulty meter (5 pips) from a hole's difficultyRank (1 = hardest). */
+function DifficultyMeter({ rank, total }: { rank: number; total: number }) {
+  const level = Math.max(1, Math.min(5, Math.ceil(((total - rank + 1) / total) * 5)));
   return (
     <div className="mt-1.5 flex items-center gap-1.5">
       <span className="text-[10px] font-semibold uppercase tracking-[0.06em] text-brand-stone">

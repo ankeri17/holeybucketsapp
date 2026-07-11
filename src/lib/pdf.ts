@@ -3,7 +3,9 @@ import type { autoTable as AutoTableFn, CellHookData } from "jspdf-autotable";
 import { brand } from "@/config/branding";
 import { holePar } from "@/lib/course";
 import { getHoleScore, netStrokes, playerTotal } from "@/lib/scoring";
-import type { Course, Round } from "@/lib/types";
+import { currentSponsors } from "@/lib/liveData";
+import { activeDigitalSponsors, activeHoleSponsors } from "@/lib/sponsors";
+import type { Course, Round, Sponsor } from "@/lib/types";
 
 /**
  * Printable PDF scorecards.
@@ -148,6 +150,115 @@ function tableEndY(doc: jsPDF, fallback: number): number {
   return withTable.lastAutoTable?.finalY ?? fallback;
 }
 
+/**
+ * Load a sponsor logo and rasterize it to a PNG data URL jsPDF can embed.
+ * Returns null on any failure — a broken logo file must never break the card
+ * (the caller falls back to the sponsor's name as text).
+ */
+function loadLogo(
+  url: string,
+): Promise<{ dataUrl: string; width: number; height: number } | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        // Logos print ~22pt tall; cap the embedded bitmap so a large logo
+        // file doesn't balloon the PDF.
+        const scale = Math.min(1, 400 / (img.naturalWidth || 400));
+        canvas.width = Math.round((img.naturalWidth || 300) * scale);
+        canvas.height = Math.round((img.naturalHeight || 120) * scale);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(null);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve({
+          dataUrl: canvas.toDataURL("image/png"),
+          width: canvas.width,
+          height: canvas.height,
+        });
+      } catch {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
+
+/**
+ * Sponsor placements under the scorecard table, honest and print-friendly:
+ *   - Hole sponsors as a footnote line ("Hole 7 presented by Osceola
+ *     Hardware") — the grid's cells are too tight for logos to print cleanly.
+ *   - Active digital sponsors as one "Thanks to our sponsors" strip: logos at
+ *     small, equal height, or the name in bold when a logo won't load. Ink on
+ *     white, so it stays legible in black-and-white printing.
+ * Draws nothing (and adds no empty frames) when there are no active sponsors.
+ * Returns the Y after what it drew.
+ */
+async function drawSponsorFooters(
+  doc: jsPDF,
+  course: Course,
+  startY: number,
+): Promise<number> {
+  // Live sheet sponsors when connected, config sponsors otherwise — the
+  // printed card always matches what the screen placements show.
+  const sponsors = currentSponsors(course.id);
+  const holeSponsors = activeHoleSponsors(sponsors);
+  const digital = activeDigitalSponsors(sponsors);
+  let y = startY;
+
+  if (holeSponsors.length > 0) {
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(...hexToRgb(brand.colors.stone));
+    doc.text(
+      holeSponsors
+        .map((s) => `Hole ${s.holeId} presented by ${s.name}`)
+        .join("   ·   "),
+      40,
+      y,
+    );
+    y += 16;
+  }
+
+  if (digital.length > 0) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...hexToRgb(brand.colors.stone));
+    doc.text("THANKS TO OUR SPONSORS", 40, y);
+    y += 6;
+
+    const LOGO_H = 22; // equal height for every logo
+    const MAX_LOGO_W = 100;
+    const GAP = 24;
+    let x = 40;
+
+    // Logos load in parallel; misses fall back to the name in bold ink.
+    const logos = await Promise.all(
+      digital.map((s: Sponsor) => (s.logoUrl ? loadLogo(s.logoUrl) : null)),
+    );
+
+    for (let i = 0; i < digital.length; i++) {
+      const sponsor = digital[i];
+      const logo = logos[i];
+      if (logo) {
+        const w = Math.min(MAX_LOGO_W, (logo.width / logo.height) * LOGO_H);
+        doc.addImage(logo.dataUrl, "PNG", x, y, w, LOGO_H);
+        x += w + GAP;
+      } else {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(...hexToRgb(brand.colors.ink));
+        doc.text(sponsor.name, x, y + LOGO_H / 2 + 4);
+        x += doc.getTextWidth(sponsor.name) + GAP;
+      }
+    }
+    y += LOGO_H + 12;
+  }
+
+  return y;
+}
+
 /** Blank scorecard to print and fill in by hand before a round. */
 export async function downloadBlankScorecard(course: Course): Promise<void> {
   const { doc, autoTable } = await newDoc();
@@ -165,6 +276,8 @@ export async function downloadBlankScorecard(course: Course): Promise<void> {
     ...Array.from({ length: NUM_BLANK_ROWS }, () => [...blankRow]),
   ];
   renderTable(doc, autoTable, head, body, startY);
+
+  await drawSponsorFooters(doc, course, tableEndY(doc, startY) + 18);
 
   doc.save(`Holey Buckets - ${course.name} - blank scorecard.pdf`);
 }
@@ -201,6 +314,7 @@ export async function downloadResultsScorecard(round: Round, course: Course): Pr
 
   renderTable(doc, autoTable, head, [parRow, ...playerRows], startY, italicCells);
 
+  let footerY = tableEndY(doc, startY) + 18;
   if (italicCells.size > 0) {
     doc.setFont("helvetica", "italic");
     doc.setFontSize(9);
@@ -208,9 +322,12 @@ export async function downloadResultsScorecard(round: Round, course: Course): Pr
     doc.text(
       "Italic scores are assumed par — the hole was opened but nobody adjusted the score.",
       40,
-      tableEndY(doc, startY) + 18,
+      footerY,
     );
+    footerY += 16;
   }
+
+  await drawSponsorFooters(doc, course, footerY);
 
   doc.save(`Holey Buckets - ${round.groupName} scorecard.pdf`);
 }
