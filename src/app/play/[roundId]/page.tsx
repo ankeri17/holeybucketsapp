@@ -14,7 +14,8 @@ import {
   playerBalls,
 } from "@/lib/scoring";
 import { ChipInIcon, FoliageIcon } from "@/components/icons";
-import type { HoleScore, Round } from "@/lib/types";
+import { HoleSponsorBand } from "@/components/sponsors/HoleSponsorBand";
+import { DEFAULT_PAR, type HoleScore, type Round } from "@/lib/types";
 
 /** Fallback tee photo when a hole has none (generic, any course). */
 const TEE_PLACEHOLDER = "/placeholder-tee.svg";
@@ -90,8 +91,16 @@ export default function PlayRoundPage() {
     (playerId: string, holeNumber: number, changes: Partial<HoleScore>) => {
       setRound((prev) => {
         if (!prev) return prev;
+        // Fallback for an edit that lands before the auto-seed effect has
+        // scored this hole: start from the hole's real par, not a literal 3.
+        const holeForNumber = getCourse(prev.courseId)?.holes.find(
+          (h) => h.number === holeNumber,
+        );
         const existing =
-          prev.scores[playerId]?.[holeNumber] ?? ({ strokes: 3 } as HoleScore);
+          prev.scores[playerId]?.[holeNumber] ??
+          ({
+            strokes: holeForNumber ? holePar(holeForNumber) : DEFAULT_PAR,
+          } as HoleScore);
         const next: Round = {
           ...prev,
           scores: {
@@ -257,6 +266,10 @@ export default function PlayRoundPage() {
           )}
         </div>
       </section>
+
+      {/* Hole sponsor credit — quiet, under the header, never in the way of
+          score entry. Renders nothing when this hole has no active sponsor. */}
+      <HoleSponsorBand courseId={course.id} holeNumber={hole.number} />
 
       {/* Player scorers */}
       <div className="mt-4 space-y-3 tabular-nums">
