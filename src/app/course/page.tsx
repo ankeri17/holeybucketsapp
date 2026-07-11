@@ -5,6 +5,7 @@ import { holePar, coursePar } from "@/lib/course";
 import { useLiveCourse, useLiveSponsors } from "@/lib/liveData";
 import { activeSponsors, holeSponsors } from "@/lib/sheets";
 import { PrintBlankButton } from "@/components/PrintBlankButton";
+import { TappablePhoto } from "@/components/TappablePhoto";
 
 /** Fallback tee thumbnail when a hole has no photo yet (generic, any course). */
 const TEE_PLACEHOLDER = "/placeholder-tee.svg";
@@ -38,14 +39,15 @@ export default function CoursePage() {
       {/* Hero image with the course name overlaid, or a text header as fallback */}
       {course.heroImage ? (
         <div className="relative mt-4 overflow-hidden rounded-2xl">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <TappablePhoto
             src={course.heroImage}
             alt={`${course.name}`}
+            caption={course.name}
             className="h-44 w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          <div className="absolute bottom-0 p-4 text-white">
+          {/* Overlays must not swallow taps meant for the photo below. */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="pointer-events-none absolute bottom-0 p-4 text-white">
             <h1 className="font-display text-3xl font-extrabold tracking-tight">
               {course.name}
             </h1>
@@ -118,13 +120,14 @@ export default function CoursePage() {
             >
               {/* Tee thumbnail with the hole number badged on it */}
               <div className="relative h-16 w-16 shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <TappablePhoto
                   src={hole.teePhoto ?? TEE_PLACEHOLDER}
-                  alt=""
+                  alt={`Tee photo for hole ${hole.number}`}
+                  caption={`Hole ${hole.number}${hole.name ? ` — ${hole.name}` : ""}`}
                   className="h-16 w-16 rounded-xl object-cover"
+                  buttonClassName="block cursor-zoom-in"
                 />
-                <span className="absolute -left-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-brand-primary text-xs font-extrabold text-white shadow">
+                <span className="pointer-events-none absolute -left-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-brand-primary text-xs font-extrabold text-white shadow">
                   {hole.number}
                 </span>
               </div>
