@@ -199,7 +199,7 @@ function AdminPanel() {
       <section className="mt-8">
         <SectionHeader
           title="Sponsors"
-          hint='Only rows with status "Active" (or "Renewed") appear in the app.'
+          hint='Rows with status "Paid", "Active", or "Renewed" appear in the app; earlier pipeline stages (and Lapsed/Declined) stay hidden.'
         />
         {sponsors.length === 0 ? (
           <p className="mt-3 rounded-2xl border border-brand-line bg-brand-card p-4 text-sm text-brand-stone">
@@ -215,9 +215,8 @@ function AdminPanel() {
               ))}
               {live.length === 0 && (
                 <p className="rounded-2xl border border-brand-line bg-brand-card p-4 text-sm text-brand-stone">
-                  Nothing live yet — set a sponsor&apos;s Status to
-                  &quot;Active&quot; in the sheet once their logo is in and the
-                  sign is up.
+                  Nothing live yet — a sponsor shows in the app once their
+                  Status reaches &quot;Paid&quot; in the sheet.
                 </p>
               )}
             </div>

@@ -125,8 +125,8 @@ Edit ONLY the `holes` array (and `heroImage` in step 1.3) in
 |---|---|---|
 | Hole number | `number` | **required**, 1..N in order |
 | Hole name | `name` | optional string in quotes |
-| Par (only if not 3) | `par` | optional number — omit it; every hole defaults to par 3 |
-| Distance (paces, tee→bucket) | `distancePaces` | optional whole number |
+| Par | `par` | number — the 2026-07 worksheet sets it on every hole (2s, 3s, 4s), so fill it in explicitly |
+| Distance (yards, tee→bucket) | `distanceYards` | optional whole number (field renamed from `distancePaces` 2026-07-11) |
 | Hazards / watch-outs | `hazards` | optional free text in quotes |
 | Difficulty ranking | `difficultyRank` | optional number, **1 = hardest**; drives the course-page pips, reserved for Phase 2 handicaps |
 | Where to tee from | `teeLocation` | optional free text (currently not rendered anywhere — safe to fill anyway) |
@@ -190,16 +190,10 @@ expected rendering (above) into the PR so the reviewer isn't surprised.
 
 ### 1.5 The placeholder disclaimer (a real code change)
 
-`src/app/course/page.tsx` ends with a HARDCODED paragraph:
-
-> "Hole details and photos are placeholders until the real course data is added."
-
-Once real data lands this text is FALSE and must go — that is a `.tsx` edit, i.e. a
-code change through change control, in the same PR as the data (data-true and
-UI-true must land together). Either delete the `<p>` or condition it on a course flag
-if placeholder courses will exist later (simplest: delete; there is one course).
-While there, also update the stale code comment near the top of the same file
-("photos are placeholders until the real ones are dropped in").
+RESOLVED 2026-07-11: the paragraph is now conditional — it renders
+"Some tee photos are placeholders…" only while any hole lacks a `teePhoto`,
+and disappears by itself once every hole has a real photo (holes 17–18 are
+the remaining gaps). No further edit needed when the last photos land.
 
 **GATE 1**
 ☐ `npm run build` passes with the new data

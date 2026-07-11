@@ -33,13 +33,15 @@ const COURSE_INFO_CSV = [
   '"","Best place for the starting tee / where a group begins","Start at either hole 1 or hole 10."',
 ].join("\n");
 
+// Mirrors the REAL Sponsorship Tracker (July 2026): a Website column that
+// sometimes holds a note instead of a link, and rows sitting at "Paid".
 const SPONSOR_CSV = [
-  '"Business Name","Contact Name","Email","Phone","Tier","Status","Hole #","Price ($)","Billing","Notes"',
-  '"Osceola Hardware","Pat Smith","pat@example.com","715-555-0101","Hole","Active","7","$300","Seasonal",""',
-  '"River Coffee","Lee Jones","lee@example.com","715-555-0102","Digital","Active","","$50","Monthly",""',
-  '"Sample Hardware Store","","","","Hole","Active","9","$300","Seasonal","SAMPLE ROW — replace with real sponsor"',
-  '"Corner Bar","","","","Hole","Verbal Yes","12","$300","Seasonal",""',
-  '"Old Sponsor","","","","Digital","Lapsed","","$50","Monthly",""',
+  '"Business Name","Contact Name","Email","Website","Phone","Tier","Status","Hole #","Price ($)","Billing","Notes"',
+  '"Placeholder Hardware Store","Pat Smith","pat@example.com","(use black and white sample typography)","715-555-0101","Hole","Paid","1","$0","Seasonal","Placeholder for a hole placement in the app"',
+  '"Hello Again Properties","Scotty Hagen","scotty@example.com","https://www.helloagainproperties.com/","","Digital","Paid","","$0","Monthly","Location Sponsor"',
+  '"Sample Hardware Store","","","","","Hole","Active","9","$300","Seasonal","SAMPLE ROW — replace with real sponsor"',
+  '"Corner Bar","","","www.cornerbar.example","","Hole","Verbal Yes","12","$300","Seasonal",""',
+  '"Old Sponsor","","","","","Digital","Lapsed","","$50","Monthly",""',
 ].join("\n");
 
 const BASE: Course = {
@@ -188,8 +190,8 @@ describe("sponsorsFromSheet", () => {
   it("maps rows to app sponsors (public-safe fields only) and skips samples", () => {
     const sponsors = sponsorsFromSheet(SPONSOR_CSV);
     expect(sponsors.map((s) => s.name)).toEqual([
-      "Osceola Hardware",
-      "River Coffee",
+      "Placeholder Hardware Store",
+      "Hello Again Properties",
       "Corner Bar",
       "Old Sponsor",
     ]);
@@ -197,26 +199,36 @@ describe("sponsorsFromSheet", () => {
     for (const sponsor of sponsors) {
       expect(JSON.stringify(sponsor)).not.toMatch(/@|715-/);
     }
+    // Ids line up with src/config/sponsors/ so logos can be inherited.
     expect(sponsors[0]).toEqual({
-      id: "osceola-hardware",
-      name: "Osceola Hardware",
+      id: "placeholder-hardware-store",
+      name: "Placeholder Hardware Store",
       tier: "hole",
-      status: "active",
-      holeId: 7,
-      pipeline: "Active",
+      status: "active", // Paid rows render — matches the config's entries
+      holeId: 1,
+      pipeline: "Paid",
     });
     // Pipeline stages that aren't live map to the app's "hidden" status but
     // keep their stage label for the admin panel.
     expect(sponsors[2]).toMatchObject({ status: "lapsed", pipeline: "Verbal Yes" });
   });
 
+  it("only accepts real links from the Website column", () => {
+    const sponsors = sponsorsFromSheet(SPONSOR_CSV);
+    // "(use black and white sample typography)" is a note, not a URL.
+    expect(sponsors[0].url).toBeUndefined();
+    expect(sponsors[1].url).toBe("https://www.helloagainproperties.com/");
+    // bare www. gets a scheme so the link actually opens
+    expect(sponsors[2].url).toBe("https://www.cornerbar.example");
+  });
+
   it("plugs into the app's own sponsor helpers", () => {
     const sponsors = sponsorsFromSheet(SPONSOR_CSV);
     expect(activeSponsors(sponsors).map((s) => s.name)).toEqual([
-      "Osceola Hardware",
-      "River Coffee",
+      "Placeholder Hardware Store",
+      "Hello Again Properties",
     ]);
-    expect(holeSponsor(sponsors, 7)?.name).toBe("Osceola Hardware");
+    expect(holeSponsor(sponsors, 1)?.name).toBe("Placeholder Hardware Store");
     expect(holeSponsor(sponsors, 12)).toBeUndefined(); // verbal yes ≠ live
   });
 

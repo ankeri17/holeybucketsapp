@@ -40,7 +40,10 @@ You don't need to be a developer to change these:
    sponsor = one block in this file + their logo dropped into
    `public/sponsors/`. When a sponsor stops paying, change their `status` to
    `"lapsed"` and that one edit removes them from the app AND the printed
-   scorecards. The sponsors in there now are made-up samples.
+   scorecards (and update the Sponsorship Tracker too — two places until the
+   tracker sheet is connected, which automates it). Current entries are from
+   the tracker: two named placeholders and the location sponsor, none paying
+   yet, all rendering as typography until logos are received.
 4. **`src/config/sheets.ts`** — connects the app to the Google Sheets the
    course is run from, and sets the secret admin URL (see below). When the
    sheets are connected they become the live source of truth, and the two
@@ -80,9 +83,10 @@ native Google Sheet shared as "Anyone with the link (Viewer)"; paste its ID
 into `src/config/sheets.ts` and edits in the sheet show up in the app on
 refresh. Until a sheet is connected (or whenever it's unreachable), the app
 quietly runs on the built-in config data — the play loop can never be taken
-down by a spreadsheet. Only "Active" sponsors are shown to players, and the
-app never reads sponsor contact columns (see the privacy note in
-`src/config/sheets.ts`).
+down by a spreadsheet. Sponsors show to players once their tracker Status
+reaches "Paid" (Paid/Active/Renewed show; earlier stages and Lapsed stay
+hidden), and the app never reads sponsor contact columns (see the privacy
+note in `src/config/sheets.ts`).
 
 ## Run it on your computer
 
@@ -156,8 +160,10 @@ Things to do before pointing real players at this:
 - [ ] Point `siteUrl` in `src/config/branding.ts` at the real domain — it's
       baked into every shared result image, permanently.
 - [ ] Set the real booking/contact URL in `bookingCta` (used by Milestone 7).
-- [ ] Replace the sample sponsors in `src/config/sponsors/osceola.ts` with real
-      ones (or set them all to `"lapsed"` to launch sponsor-free).
+- [ ] Replace the placeholder sponsors in `src/config/sponsors/osceola.ts`
+      with real paying ones as they sign (or set them to `"lapsed"` to launch
+      sponsor-free). Hello Again Properties' logo is still owed (tracker:
+      "Logo Received: No").
 - [ ] Confirm the house rules above with the owner — especially the
       zero-score chip-in and default-to-par behaviors.
 

@@ -286,13 +286,30 @@ function parseCourseInfo(csv: string): Partial<Course> {
  * A sponsor row as read from the sheet: a real app Sponsor (the shape every
  * placement component and the PDF consume — see src/lib/sponsors.ts), plus
  * the raw pipeline stage for the admin panel. The app's binary
- * active/lapsed status is derived: only "Active" and "Renewed" rows show
- * to players; every other stage (Lead, Contacted, Verbal Yes, Paid, …) is
- * treated as lapsed, i.e. hidden.
+ * active/lapsed status is derived: "Paid", "Active", and "Renewed" rows
+ * show to players (money's in — the tracker's current placeholder rows sit
+ * at Paid and are meant to render); earlier stages (Lead, Contacted,
+ * Verbal Yes) and Lapsed/Declined stay hidden.
  */
 export interface SheetSponsor extends Sponsor {
   /** The tracker's pipeline stage as written, e.g. "Verbal Yes". */
   pipeline: string;
+}
+
+/** Stages that should render in the app. */
+const VISIBLE_STAGES = new Set(["paid", "active", "renewed"]);
+
+/**
+ * The tracker's Website column sometimes carries notes instead of a link
+ * ("(use black and white sample typography)") — only accept things that can
+ * actually be opened.
+ */
+function cellUrl(value: string | undefined): string | undefined {
+  const text = cellText(value);
+  if (!text) return undefined;
+  if (/^https?:\/\//i.test(text)) return text;
+  if (/^www\./i.test(text)) return `https://${text}`;
+  return undefined;
 }
 
 /** "Osceola Hardware!" → "osceola-hardware" (a stable Sponsor id). */
@@ -360,12 +377,12 @@ export function sponsorsFromSheet(csv: string): SheetSponsor[] {
       name,
       tier,
       // The tracker's whole pipeline maps onto the app's binary switch:
-      // Active/Renewed → show; anything else → hidden (= "lapsed").
-      status: stage === "active" || stage === "renewed" ? "active" : "lapsed",
+      // Paid/Active/Renewed → show; anything else → hidden (= "lapsed").
+      status: VISIBLE_STAGES.has(stage) ? "active" : "lapsed",
       pipeline,
     };
     if (holeId != null) sponsor.holeId = holeId;
-    const website = cellText(row[websiteCol]);
+    const website = cellUrl(row[websiteCol]);
     if (website) sponsor.url = website;
     const logo = cellText(row[logoCol]);
     if (logo) sponsor.logoUrl = driveImageUrl(logo);

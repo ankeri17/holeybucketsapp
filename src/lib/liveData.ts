@@ -111,7 +111,31 @@ export async function fetchSheetSponsors(): Promise<{
   warnings: string[];
 }> {
   const csv = await fetchTabCsv(sheetsConfig.sponsorSheetId, sheetsConfig.sponsorTab);
-  return { sponsors: sponsorsFromSheet(csv), warnings: [] };
+  return {
+    sponsors: mergeWithConfigSponsors(sponsorsFromSheet(csv)),
+    warnings: [],
+  };
+}
+
+/**
+ * The tracker has no Logo URL column (yet) — logo files live in the repo at
+ * /public/sponsors/ and are pointed at from src/config/sponsors/. So when a
+ * sheet row matches a config sponsor (same id — "Hello Again Properties" →
+ * "hello-again-properties"), inherit the config's logo/url for anything the
+ * sheet doesn't say. The sheet stays in charge of WHO exists, their status,
+ * tier, and hole; the config keeps supplying the artwork.
+ */
+function mergeWithConfigSponsors(sheet: SheetSponsor[]): SheetSponsor[] {
+  const byId = new Map(getSponsors(defaultCourse.id).map((s) => [s.id, s]));
+  return sheet.map((sponsor) => {
+    const config = byId.get(sponsor.id);
+    if (!config) return sponsor;
+    return {
+      ...sponsor,
+      logoUrl: sponsor.logoUrl ?? config.logoUrl,
+      url: sponsor.url ?? config.url,
+    };
+  });
 }
 
 /** The config sponsors in SheetSponsor clothing (pipeline = their status). */
