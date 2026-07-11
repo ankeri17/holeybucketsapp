@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { holePar, coursePar, courseYards } from "./course";
 import { osceola } from "@/config/courses/osceola";
@@ -54,5 +56,15 @@ describe("the Grey Duck course data", () => {
   it("totals par 54 and 529 yards, per the worksheet", () => {
     expect(coursePar(osceola)).toBe(54);
     expect(courseYards(osceola)).toBe(529);
+  });
+
+  it("every teePhoto points at a real file in public/", () => {
+    for (const hole of osceola.holes) {
+      if (!hole.teePhoto) continue;
+      const onDisk = path.join(process.cwd(), "public", hole.teePhoto);
+      expect(existsSync(onDisk), `hole ${hole.number}: ${hole.teePhoto}`).toBe(
+        true,
+      );
+    }
   });
 });

@@ -110,10 +110,12 @@ export default function CoursePage() {
           >
             {/* Tee thumbnail with the hole number badged on it */}
             <div className="relative h-16 w-16 shrink-0">
+              {/* lazy: 18 real photos would otherwise load at once on a phone */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={hole.teePhoto ?? TEE_PLACEHOLDER}
                 alt=""
+                loading="lazy"
                 className="h-16 w-16 rounded-xl object-cover"
               />
               <span className="absolute -left-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-brand-primary text-xs font-extrabold text-white shadow">
