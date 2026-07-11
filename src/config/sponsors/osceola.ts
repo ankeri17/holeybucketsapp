@@ -2,14 +2,16 @@ import type { Sponsor } from "@/lib/types";
 
 /**
  * ============================================================================
- * THE GRAY DUCK (OSCEOLA) SPONSORS  —  SAMPLE DATA
+ * THE GREY DUCK (OSCEOLA) SPONSORS  —  from the Sponsorship Tracker
  * ============================================================================
  *
- * 👉 This is the file to edit to manage The Gray Duck's sponsors.
+ * 👉 This is the file to edit to manage The Grey Duck's sponsors.
  *
- * The four sponsors below are MADE-UP SAMPLES with placeholder logos, here so
- * every placement is visible and testable today. Replace them with real
- * sponsors as they sign.
+ * The three sponsors below come from the Sponsorship Tracker workbook
+ * (July 2026). Two are named placeholders and one is the location sponsor —
+ * none are paying yet. Replace/add entries here as real sponsors sign, and
+ * keep this file in sync with the tracker (per its rules: when a sponsor
+ * lapses, update BOTH the tracker and this file, until that's automated).
  *
  * How to add a sponsor (you don't need to be a developer):
  *   1. Drop their logo file into  /public/sponsors/  (a wide PNG works best).
@@ -34,57 +36,40 @@ import type { Sponsor } from "@/lib/types";
  * ----------------------------------------------------------------------------
  */
 export const osceolaSponsors: Sponsor[] = [
-  // SAMPLE — hole sponsor, active: shows on hole 7's scoring screen and on
-  // the scorecard (screen + PDF).
+  // Hole sponsor placeholder (tracker: hole 1, no logo received yet). With no
+  // logoUrl, every placement shows the name in the app's bold black display
+  // type — the "black and white sample typography" the tracker asks for.
   {
-    id: "osceola-hardware",
-    name: "Osceola Hardware",
-    logoUrl: "/sponsors/osceola-hardware.png",
+    id: "placeholder-hardware-store",
+    name: "Placeholder Hardware Store",
     tier: "hole",
     status: "active",
-    holeId: 7,
-    url: "https://example.com/osceola-hardware",
+    holeId: 1,
     termStart: "2026-05-01",
     termEnd: "2026-10-31",
   },
 
-  // SAMPLE — hole sponsor, LAPSED: proves the kill switch. This one shows
-  // nowhere; flip `status` to "active" to see it on hole 13.
+  // Digital sponsor placeholder (tracker: rotate with Hello Again, no logo
+  // received yet) — same typography-only treatment as above.
   {
-    id: "cascade-falls-coffee",
-    name: "Cascade Falls Coffee",
-    logoUrl: "/sponsors/cascade-falls-coffee.png",
-    tier: "hole",
-    status: "lapsed",
-    holeId: 13,
-    url: "https://example.com/cascade-falls-coffee",
-    termStart: "2026-04-01",
-    termEnd: "2026-06-30",
-  },
-
-  // SAMPLE — digital sponsor, active: rotates in the home + results slots and
-  // appears in the printed "Thanks to our sponsors" row.
-  {
-    id: "river-valley-realty",
-    name: "River Valley Realty",
-    logoUrl: "/sponsors/river-valley-realty.png",
+    id: "placeholder-coffee-shop",
+    name: "Placeholder Coffee Shop",
     tier: "digital",
     status: "active",
-    url: "https://example.com/river-valley-realty",
     termStart: "2026-05-01",
     termEnd: "2026-10-31",
   },
 
-  // SAMPLE — second active digital sponsor, so the rotating slot actually
-  // rotates (a different sponsor can come up on each visit).
+  // The location sponsor — Scotty's company hosts the course. Fills the
+  // digital rotation until paying sponsors are acquired. Add their logo to
+  // /public/sponsors/ and a `logoUrl` here once it's received.
   {
-    id: "ducks-deck-grill",
-    name: "Duck's Deck Bar & Grill",
-    logoUrl: "/sponsors/ducks-deck-grill.png",
+    id: "hello-again-properties",
+    name: "Hello Again Properties",
     tier: "digital",
     status: "active",
-    url: "https://example.com/ducks-deck-grill",
-    termStart: "2026-06-01",
-    termEnd: "2026-09-30",
+    url: "https://www.helloagainproperties.com/",
+    termStart: "2026-05-01",
+    termEnd: "2026-10-31",
   },
 ];

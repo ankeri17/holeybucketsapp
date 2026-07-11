@@ -40,7 +40,10 @@ You don't need to be a developer to change these:
    sponsor = one block in this file + their logo dropped into
    `public/sponsors/`. When a sponsor stops paying, change their `status` to
    `"lapsed"` and that one edit removes them from the app AND the printed
-   scorecards. The sponsors in there now are made-up samples.
+   scorecards (and update the Sponsorship Tracker too — two places until it's
+   automated). Current entries are from the tracker: two named placeholders
+   and the location sponsor, none paying yet, all rendering as typography
+   until logos are received.
 
 ## Run it on your computer
 
@@ -110,8 +113,10 @@ Things to do before pointing real players at this:
 - [ ] Point `siteUrl` in `src/config/branding.ts` at the real domain — it's
       baked into every shared result image, permanently.
 - [ ] Set the real booking/contact URL in `bookingCta` (used by Milestone 7).
-- [ ] Replace the sample sponsors in `src/config/sponsors/osceola.ts` with real
-      ones (or set them all to `"lapsed"` to launch sponsor-free).
+- [ ] Replace the placeholder sponsors in `src/config/sponsors/osceola.ts`
+      with real paying ones as they sign (or set them to `"lapsed"` to launch
+      sponsor-free). Hello Again Properties' logo is still owed (tracker:
+      "Logo Received: No").
 - [ ] Confirm the house rules above with the owner — especially the
       zero-score chip-in and default-to-par behaviors.
 

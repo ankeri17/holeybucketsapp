@@ -13,8 +13,8 @@ Verified against the repo at commit `aa4c527` on 2026-07-02. All paths are relat
 | File | What it configures | Founder-editable? |
 |---|---|---|
 | `src/config/branding.ts` | Name, tagline, umbrella brand, site URL, all colors, booking CTA | YES — designed for a non-developer |
-| `src/config/courses/osceola.ts` | The flagship course ("The Gray Duck") — all hole data | YES — designed for a non-developer |
-| `src/config/sponsors/osceola.ts` | The Gray Duck's sponsors (hole + digital tiers, the `lapsed` kill switch) — SAMPLE data as of 2026-07-08 | YES — designed for a non-developer |
+| `src/config/courses/osceola.ts` | The flagship course ("Grey Duck") — all hole data, real worksheet values as of 2026-07-11 | YES — designed for a non-developer |
+| `src/config/sponsors/osceola.ts` | The Grey Duck's sponsors (hole + digital tiers, the `lapsed` kill switch) — tracker-sourced placeholders as of 2026-07-11 | YES — designed for a non-developer |
 | `src/config/courses/index.ts` | Course registry: `courses[]`, `defaultCourse`, `getCourse(id)` | Engineer only |
 | `src/config/sponsors/index.ts` | Sponsor registry: `sponsorsByCourse`, `getSponsors(courseId)`, loud build/load validation | Engineer only |
 | `src/lib/formats.ts` | `FORMATS` catalog (with `available` flags), `DEFAULT_FORMAT` | Engineer only, via change control |
@@ -87,8 +87,8 @@ CSS-variable names published by `layout.tsx` differ from token names: `primary`�
 ## 2. Course + Hole fields (src/lib/types.ts)
 
 Data contract for every course. Current sole course: `src/config/courses/osceola.ts` — its hole
-data (names, paces, hazards) is **invented placeholder** until the owner's worksheet arrives; the
-file says so at the top. Registry: `src/config/courses/index.ts` (`courses = [osceola]`,
+data is **real** as of 2026-07-11 (owner's worksheet: names, yards, per-hole pars 2–4, total par
+54/529 yds; hazards, difficulty ranks, and tips were blank in the worksheet and remain unset). Registry: `src/config/courses/index.ts` (`courses = [osceola]`,
 `defaultCourse = osceola`). There is NO course-selection UI — the start page hardcodes
 `defaultCourse`.
 
@@ -97,13 +97,16 @@ file says so at the top. Registry: `src/config/courses/index.ts` (`courses = [os
 | Field | Required? | Osceola value | Status (verified 2026-07-02) |
 |---|---|---|---|
 | `id` | required | `"osceola"` | USED — links `Round.courseId` back to the course via `getCourse()` (play + results pages) |
-| `name` | required | `"The Gray Duck"` | USED — every page, PDFs, share card |
-| `location` | required | `"Osceola, WI"` | USED — course/start pages, PDFs, share card |
+| `name` | required | `"Grey Duck"` | USED — every page, PDFs, share card |
+| `location` | required | `"Osceola, Wisconsin"` | USED — course/start pages, PDFs, share card |
 | `host` | optional | `"Hello Again Properties"` | USED — course-page hero overlay. Per-course, not a global brand |
 | `code` | optional | `"grayduck"` | **Phase-2 scaffold, unread by any code** — reserved for "enter a course code" / QR join. Also the conventional asset folder name (see checklist below) |
 | `isPublic` | optional | `true` | **Phase-2 scaffold, unread by any code** — public listing for owner-created courses later |
 | `trackBalls` | optional (off when omitted) | `true` | **USED** — gates the "Balls used" stepper on the play page and the Balls-used section on results. Round-level per-player tally for per-ball billing; never affects score (see **bucket-golf-reference**) |
 | `heroImage` | optional | `"/courses/grayduck/hero.svg"` | USED — course-page hero. Current file is a branded SVG placeholder (PR #12, 2026-06-26: real photos were view-only). Real photo is a drop-in |
+| `outOfBounds` | optional | omitted → not rendered | USED — "Good to know" card on the course page (added 2026-07-11 from the worksheet's Course Info tab) |
+| `houseRules` | optional | omitted → not rendered | USED — "Good to know" card on the course page |
+| `startingTee` | optional | omitted → not rendered | USED — "Good to know" card on the course page |
 | `holes` | required | 18 holes | USED everywhere |
 
 ### Hole fields
@@ -112,13 +115,13 @@ file says so at the top. Registry: `src/config/courses/index.ts` (`courses = [os
 |---|---|---|---|
 | `number` | required | — | USED — the only required hole field |
 | `name` | optional | omitted → not rendered | USED — course page, play-page hole header |
-| `par` | optional | `DEFAULT_PAR` (3) via `holePar()` | USED — **no Osceola hole sets it today**; see §4 |
-| `distancePaces` | optional | omitted → not rendered | USED — "N paces" on course + play pages |
+| `par` | optional | `DEFAULT_PAR` (3) via `holePar()` | USED — **every Osceola hole sets it explicitly** (2s, 3s, and 4s) as of 2026-07-11; see §4 |
+| `distanceYards` | optional | omitted → not rendered | USED — "N yds" on course + play pages (renamed from `distancePaces` 2026-07-11; worksheet measures yards) |
 | `hazards` | optional | omitted → not rendered | USED — "Heads up: …" (penalty clay on course page; white-on-green on play page) |
 | `difficultyRank` | optional | omitted → no pips | **Pips-only today** — drives the 5-pip DifficultyMeter on the course page (`level = clamp(ceil(((total−rank+1)/total)·5), 1, 5)`; 1 = hardest). Reserved for the Phase-2 handicap system |
 | `teeLocation` | optional | — | **Phase-2 scaffold, unread by any code** |
 | `note` | optional | omitted → not rendered | USED — italic tip on course + play pages |
-| `teePhoto` | optional | falls back to `/placeholder-tee.svg` | USED — thumbnail (course page) and banner (play page), both via `hole.teePhoto ?? TEE_PLACEHOLDER`. No Osceola hole sets it today, so every hole shows the SVG placeholder |
+| `teePhoto` | optional | falls back to `/placeholder-tee.svg` | USED — thumbnail (course page) and banner (play page), both via `hole.teePhoto ?? TEE_PLACEHOLDER`. Holes 1–16 have real photos (`/courses/grayduck/hole-NN.jpg`, 2026-07-11); 17–18 show the SVG placeholder |
 
 The scaffold fields (`code`, `isPublic`, `teeLocation`) were added deliberately in PR #8
 (2026-06-26): "cheap now, painful to retrofit". Do not delete them as dead code.
@@ -257,8 +260,10 @@ component knows a specific sponsor. Types live in `src/lib/types.ts` (`Sponsor`,
 | Scorecard footnote ("Hole 7 presented by …") | `src/components/sponsors/ScorecardSponsorRow.tsx` | results page, under the scorecard grid |
 | PDF footnote + "THANKS TO OUR SPONSORS" strip | `drawSponsorFooters()` in `src/lib/pdf.ts` | both PDFs (blank + results), under the table |
 
-Zero active sponsors → all four render nothing (no placeholders). Sample data (4 made-up
-sponsors, one lapsed) ships as of 2026-07-08 and is labeled SAMPLE in the config file.
+Zero active sponsors → all four render nothing (no placeholders). As of 2026-07-11 the config
+carries the Sponsorship Tracker's three entries (hole 1 placeholder, digital placeholder, and
+Hello Again Properties as location sponsor) — all active, none with a logo yet, so every
+placement renders the styled-text fallback.
 Not built (deliberate, 2026-07-08 change request): Stripe/webhooks, admin UI, self-serve
 signup, click tracking (hook locations documented in `REVIEW.md`).
 
@@ -281,10 +286,10 @@ Flags and "unused" claims drift. Re-verify before relying on them:
 | Only strokePlay available | `grep -n "available: true" src/lib/formats.ts` | 1 line (strokePlay) |
 | scoring still ignores round.format | `grep -n "format" src/lib/scoring.ts` | only `formatToPar` hits |
 | DEFAULT_PAR still 3 | `grep -n "DEFAULT_PAR = " src/lib/types.ts` | `export const DEFAULT_PAR = 3;` |
-| No hole overrides par yet | `grep -n "par:" src/config/courses/*.ts` | no output |
+| Every hole sets its own par | `grep -c "par:" src/config/courses/osceola.ts` | 18 |
 | Course registry contents | `grep -n "courses: Course\[\]\|defaultCourse" src/config/courses/index.ts` | `[osceola]`, default = osceola |
 | Placeholder assets still in place | `ls public/placeholder-tee.svg public/courses/grayduck/` | both exist (hero.svg) |
 | Current siteUrl | `grep -n "siteUrl" src/config/branding.ts` | `holeybuckets.netlify.app` (until the real domain) |
-| Sponsor data still SAMPLE | `grep -n "SAMPLE" src/config/sponsors/osceola.ts` | banner + per-sponsor labels present (delete when real sponsors land) |
+| Sponsor data source | `grep -n "Sponsorship Tracker" src/config/sponsors/osceola.ts` | header cites the tracker; entries match its Pipeline tab |
 | Sponsor registry contents | `grep -n "sponsorsByCourse" src/config/sponsors/index.ts` | `{ osceola: osceolaSponsors }` |
 | termStart/termEnd still informational | `grep -rn "termStart\|termEnd" src \| grep -v config/sponsors \| grep -v types.ts` | no output (no date logic) |

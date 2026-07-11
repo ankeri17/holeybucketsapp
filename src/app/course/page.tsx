@@ -166,9 +166,12 @@ export default function CoursePage() {
         ))}
       </ol>
 
-      <p className="mt-8 text-center text-xs text-brand-stone">
-        Tee photos are placeholders until the real course photos are added.
-      </p>
+      {/* Only shown while any hole still lacks a real photo — goes away by itself. */}
+      {course.holes.some((hole) => !hole.teePhoto) && (
+        <p className="mt-8 text-center text-xs text-brand-stone">
+          Some tee photos are placeholders until the real ones are added.
+        </p>
+      )}
 
       {/* Sticky start CTA — browsing the course shouldn't be a dead end.
           Bottom padding respects the iPhone home-indicator safe area. */}
