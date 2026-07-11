@@ -49,12 +49,12 @@ export function SponsorLink({
   className?: string;
   children: React.ReactNode;
 }) {
-  if (!sponsor.url) {
+  if (!sponsor.website) {
     return <span className={className}>{children}</span>;
   }
   return (
     <a
-      href={sponsor.url}
+      href={sponsor.website}
       target="_blank"
       rel="noopener"
       aria-label={`Visit sponsor ${sponsor.name}`}

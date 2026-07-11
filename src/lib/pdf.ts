@@ -3,7 +3,7 @@ import type { autoTable as AutoTableFn, CellHookData } from "jspdf-autotable";
 import { brand } from "@/config/branding";
 import { holePar } from "@/lib/course";
 import { getHoleScore, netStrokes, playerTotal } from "@/lib/scoring";
-import { getSponsors } from "@/config/sponsors";
+import { currentSponsors } from "@/lib/liveData";
 import { activeDigitalSponsors, activeHoleSponsors } from "@/lib/sponsors";
 import type { Course, Round, Sponsor } from "@/lib/types";
 
@@ -200,7 +200,7 @@ async function drawSponsorFooters(
   course: Course,
   startY: number,
 ): Promise<number> {
-  const sponsors = getSponsors(course.id);
+  const sponsors = currentSponsors(course.id);
   const holeSponsors = activeHoleSponsors(sponsors);
   const digital = activeDigitalSponsors(sponsors);
   let y = startY;
@@ -211,7 +211,7 @@ async function drawSponsorFooters(
     doc.setTextColor(...hexToRgb(brand.colors.stone));
     doc.text(
       holeSponsors
-        .map((s) => `Hole ${s.holeId} presented by ${s.name}`)
+        .map((s) => `Hole ${s.holeNumber} presented by ${s.name}`)
         .join("   ·   "),
       40,
       y,

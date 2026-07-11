@@ -23,10 +23,10 @@ import type { Sponsor } from "@/lib/types";
  *      - `tier`      "hole" (one hole is theirs) or "digital" (app slots +
  *                    the printed "Thanks to our sponsors" row)
  *      - `status`    "active" to show them, "lapsed" to hide them
- *      - `holeId`    ONLY for "hole" sponsors: the hole number they bought.
+ *      - `holeNumber` ONLY for "hole" sponsors: the hole number they bought.
  *                    One active sponsor per hole — the build fails loudly if
  *                    two active sponsors claim the same hole.
- *      - `url`       their website in quotes (optional — logo links to it)
+ *      - `website`   their website in quotes (optional — logo links to it)
  *      - `termStart` / `termEnd`  the deal dates (just notes for now)
  *   That's it. Nothing else to edit anywhere.
  *
@@ -44,7 +44,7 @@ export const osceolaSponsors: Sponsor[] = [
     name: "Placeholder Hardware Store",
     tier: "hole",
     status: "active",
-    holeId: 1,
+    holeNumber: 1,
     termStart: "2026-05-01",
     termEnd: "2026-10-31",
   },
@@ -69,7 +69,7 @@ export const osceolaSponsors: Sponsor[] = [
     logoUrl: "/sponsors/hello-again-properties.png",
     tier: "digital",
     status: "active",
-    url: "https://www.helloagainproperties.com/",
+    website: "https://www.helloagainproperties.com/",
     termStart: "2026-05-01",
     termEnd: "2026-10-31",
   },

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { defaultCourse } from "@/config/courses";
+import { useLiveCourse } from "@/lib/liveData";
 import { FORMATS, DEFAULT_FORMAT } from "@/lib/formats";
 import { createRound } from "@/lib/round";
 import { PrintBlankButton } from "@/components/PrintBlankButton";
@@ -19,7 +20,9 @@ import type { ScoringFormat } from "@/lib/types";
  */
 export default function StartPage() {
   const router = useRouter();
-  const course = defaultCourse;
+  // Live sheet data when connected (fresh name + holes for the printed
+  // scorecard); the built-in course otherwise.
+  const course = useLiveCourse().course ?? defaultCourse;
 
   const [groupName, setGroupName] = useState("");
   // Start with two empty player slots — most groups have at least two.
