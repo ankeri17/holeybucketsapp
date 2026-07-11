@@ -2,58 +2,65 @@ import type { Course } from "@/lib/types";
 
 /**
  * ============================================================================
- * OSCEOLA COURSE  —  PLACEHOLDER DATA
+ * OSCEOLA COURSE  —  THE GREY DUCK (real data from the owner's worksheet)
  * ============================================================================
  *
- * 👉 This is the file to edit to set up the real Osceola course.
+ * Real course data, from the owner's "holey-buckets-course-details" worksheet
+ * (walked and filled in on the property). This file is the app's built-in
+ * copy: when the Google Sheet is connected (see src/config/sheets.ts) the app
+ * reads the LIVE sheet and this file is only the offline fallback — so the
+ * normal way to update the course is to edit the sheet, not this file.
  *
- * The hole names, distances, and hazards below are PLACEHOLDERS, invented so
- * the app has a full 18-hole course to run against today. When the property
- * owner's worksheet comes back with the real layout, replace the holes here.
- * Nothing else in the app needs to change — that's the whole point of keeping
- * the course in this one file.
+ * The course is NOT all par 3s — it mixes par 2s, 3s, and 4s (total par 54).
  *
- * How to edit a hole (you don't need to be a developer):
- *   - `number`        the hole's number, 1–18  (required)
- *   - `name`          a fun name in quotes      (optional)
- *   - `distancePaces` how many paces tee→bucket (optional, a whole number)
- *   - `hazards`       what to watch out for      (optional, free text in quotes)
- *   - `difficultyRank` 1 = hardest hole          (optional, used later for handicaps)
- *   - `note`          a tip shown to players      (optional, free text in quotes)
- *
- * Every hole is a par 3 automatically — you don't need to set par.
+ * If you do edit here (you don't need to be a developer):
+ *   - `number`    the hole's number, 1–18  (required)
+ *   - `name`      a fun name in quotes      (optional)
+ *   - `distance`  tee→bucket, in the course's distanceUnit (yards here)
+ *   - `par`       only when it isn't 3 — every hole defaults to par 3
+ *   - `hazards` / `note` / `teeLocation` / `difficultyRank` — optional extras
+ *   - `teePhoto`  "/courses/grayduck/hole-NN.jpg" (or set a Photo URL in the sheet)
  * Keep each hole inside { curly braces } and end it with a comma.
  * ----------------------------------------------------------------------------
  */
 export const osceola: Course = {
   id: "osceola",
-  name: "The Gray Duck", // the real course name (shown to players, not "Holey Buckets at Osceola")
+  name: "Grey Duck", // as written on the owner's worksheet
   code: "grayduck", // short code for "enter a course code" / QR join later
-  location: "Osceola, WI",
+  location: "Osceola, Wisconsin",
   host: "Hello Again Properties", // the host of this location (per-course, not a global brand)
   isPublic: true, // the flagship is publicly listed
-  trackBalls: true, // The Gray Duck charges per ball, so tally balls used/lost
+  trackBalls: true, // The Grey Duck charges per ball, so tally balls used/lost
   // Course hero image. Swap this for the real course photo (drop the file in
-  // /public/courses/grayduck/ and point this at it).
+  // /public/courses/grayduck/ and point this at it, or set a Photo URL in the sheet).
   heroImage: "/courses/grayduck/hero.svg",
+  // The worksheet measured distances in yards.
+  distanceUnit: "yards",
+  // From the worksheet's Course Info tab — one continuous 18.
+  outOfBounds: "Farmer field, road, driveway, and tall brush",
+  houseRules: "Tee off from the black honeycomb mat",
+  startingTee: "Start at either hole 1 or hole 10",
+  // Tee photos are from Scotty's walk-through (July 10), converted for the web
+  // with location metadata stripped. Holes 17–18 had no photo in the batch, so
+  // they fall back to the placeholder until those are shot and confirmed.
   holes: [
-    { number: 1, name: "The Warm-Up", distancePaces: 12, difficultyRank: 14, note: "Gentle opener — find your swing." },
-    { number: 2, name: "Deck Party", distancePaces: 16, hazards: "Out of bounds left past the deck", difficultyRank: 9 },
-    { number: 3, name: "The Outhouse", distancePaces: 20, hazards: "Bushes behind the bucket", difficultyRank: 4 },
-    { number: 4, name: "Birch Alley", distancePaces: 15, hazards: "Tree line both sides", difficultyRank: 7 },
-    { number: 5, name: "Lily Dip", distancePaces: 22, hazards: "Water short and right", difficultyRank: 2 },
-    { number: 6, name: "The Slope", distancePaces: 14, difficultyRank: 12, note: "Ground falls away — don't go long." },
-    { number: 7, name: "Firepit", distancePaces: 18, hazards: "Firepit ring is a no-drop zone", difficultyRank: 6 },
-    { number: 8, name: "Shed Shot", distancePaces: 13, hazards: "Shed wall behind", difficultyRank: 15 },
-    { number: 9, name: "The Turn", distancePaces: 19, difficultyRank: 8, note: "Halfway — grab a drink." },
-    { number: 10, name: "Hammock Hang", distancePaces: 17, hazards: "Trees and the hammock", difficultyRank: 10 },
-    { number: 11, name: "Garden Gauntlet", distancePaces: 21, hazards: "Veggie garden, drop no closer", difficultyRank: 3 },
-    { number: 12, name: "Stump City", distancePaces: 15, hazards: "Old stumps short", difficultyRank: 13 },
-    { number: 13, name: "The Long Haul", distancePaces: 25, difficultyRank: 1, note: "Longest hole on the course." },
-    { number: 14, name: "Picnic Pitch", distancePaces: 16, hazards: "Picnic table is in play", difficultyRank: 11 },
-    { number: 15, name: "Creek Crossing", distancePaces: 23, hazards: "Creek short of the bucket", difficultyRank: 5 },
-    { number: 16, name: "The Mound", distancePaces: 14, difficultyRank: 16, note: "Bucket sits up on a mound." },
-    { number: 17, name: "Fence Line", distancePaces: 18, hazards: "Property fence long", difficultyRank: 17 },
-    { number: 18, name: "Holey Finish", distancePaces: 20, hazards: "Flower beds left", difficultyRank: 18, note: "Last hole — chip it in for the win!" },
+    { number: 1, name: "Big Shot", distance: 30, teePhoto: "/courses/grayduck/hole-01.jpg" },
+    { number: 2, name: "In the Clear", distance: 36, teePhoto: "/courses/grayduck/hole-02.jpg" },
+    { number: 3, name: "Them Apples", distance: 17, par: 2, teePhoto: "/courses/grayduck/hole-03.jpg" },
+    { number: 4, name: "Roi", distance: 34, teePhoto: "/courses/grayduck/hole-04.jpg" },
+    { number: 5, name: "Fire", distance: 38, par: 4, teePhoto: "/courses/grayduck/hole-05.jpg" },
+    { number: 6, name: "Troll", distance: 30, teePhoto: "/courses/grayduck/hole-06.jpg" },
+    { number: 7, name: "Air", distance: 23, teePhoto: "/courses/grayduck/hole-07.jpg" },
+    { number: 8, name: "Sweet", distance: 16, par: 2, teePhoto: "/courses/grayduck/hole-08.jpg" },
+    { number: 9, name: "Temple Time", distance: 41, par: 4, teePhoto: "/courses/grayduck/hole-09.jpg" },
+    { number: 10, name: "Gunner", distance: 40, par: 4, teePhoto: "/courses/grayduck/hole-10.jpg" },
+    { number: 11, name: "Out of the Woods", distance: 25, teePhoto: "/courses/grayduck/hole-11.jpg" },
+    { number: 12, name: "Short Drive", distance: 15, par: 2, teePhoto: "/courses/grayduck/hole-12.jpg" },
+    { number: 13, name: "Shi Ter Ful", distance: 34, teePhoto: "/courses/grayduck/hole-13.jpg" },
+    { number: 14, name: "Shrug", distance: 33, teePhoto: "/courses/grayduck/hole-14.jpg" },
+    { number: 15, name: "Ooofff", distance: 15, par: 2, teePhoto: "/courses/grayduck/hole-15.jpg" },
+    { number: 16, name: "#27", distance: 27, teePhoto: "/courses/grayduck/hole-16.jpg" },
+    { number: 17, name: "Deck Party", distance: 39, par: 4 },
+    { number: 18, name: "Hello Again", distance: 36 },
   ],
 };

@@ -14,3 +14,11 @@ export function holePar(hole: Hole): number {
 export function coursePar(course: Course): number {
   return course.holes.reduce((total, hole) => total + holePar(hole), 0);
 }
+
+/**
+ * Total measured length of a course, in its own distanceUnit (holes without a
+ * distance count 0). The label to show alongside it is course.distanceUnit.
+ */
+export function courseDistance(course: Course): number {
+  return course.holes.reduce((total, hole) => total + (hole.distance ?? 0), 0);
+}

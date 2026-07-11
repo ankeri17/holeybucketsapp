@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { getCourse } from "@/config/courses";
 import { holePar } from "@/lib/course";
+import { useLiveCourse, useLiveSponsors } from "@/lib/liveData";
+import { holeSponsors } from "@/lib/sheets";
 import { loadRound, saveRound } from "@/lib/storage";
 import {
   getHoleScore,
@@ -38,7 +40,11 @@ export default function PlayRoundPage() {
   const [holeIndex, setHoleIndex] = useState(0);
   const holeStripRef = useRef<HTMLDivElement>(null);
 
-  const course = round ? getCourse(round.courseId) : undefined;
+  // The course, live from the owner's Google Sheet when connected (fresh
+  // names/photos/sponsors), built-in config otherwise.
+  const { course: liveCourse } = useLiveCourse(round?.courseId);
+  const { sponsors } = useLiveSponsors();
+  const course = round ? liveCourse : undefined;
 
   useEffect(() => {
     const stored = loadRound(params.roundId);
@@ -175,6 +181,7 @@ export default function PlayRoundPage() {
   const isFirst = holeIndex === 0;
   const isLast = holeIndex === course.holes.length - 1;
   const board = standings(round, course);
+  const sponsor = holeSponsors(sponsors).get(hole.number);
 
   return (
     <main className="mx-auto min-h-screen max-w-md px-4 pb-28 pt-4">
@@ -245,15 +252,25 @@ export default function PlayRoundPage() {
             <h1 className="font-display text-2xl font-extrabold">{hole.name}</h1>
           )}
           <div className="mt-1 flex flex-wrap gap-x-4 text-sm opacity-90">
-            {hole.distancePaces != null && (
-              <span>{hole.distancePaces} paces</span>
+            {hole.distance != null && (
+              <span>
+                {hole.distance} {course.distanceUnit ?? "paces"}
+              </span>
             )}
             {hole.hazards && (
               <span className="font-semibold">Heads up: {hole.hazards}</span>
             )}
           </div>
+          {hole.teeLocation && (
+            <p className="mt-1 text-sm opacity-90">Tee: {hole.teeLocation}</p>
+          )}
           {hole.note && (
             <p className="mt-1 text-sm italic opacity-80">{hole.note}</p>
+          )}
+          {sponsor && (
+            <p className="mt-1.5 text-xs font-semibold uppercase tracking-wide opacity-80">
+              Hole sponsored by {sponsor.name}
+            </p>
           )}
         </div>
       </section>

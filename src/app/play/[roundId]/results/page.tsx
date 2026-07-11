@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { getCourse } from "@/config/courses";
+import { useLiveCourse } from "@/lib/liveData";
 import { loadRound, clearActiveRoundId } from "@/lib/storage";
 import {
   standings,
@@ -17,6 +17,8 @@ import { buildShareImage, shareImage, downloadImage } from "@/lib/shareImage";
 import { downloadResultsScorecard } from "@/lib/pdf";
 import { BucketLogo } from "@/components/icons";
 import { Scorecard } from "@/components/Scorecard";
+import { DigitalSponsorSlot } from "@/components/sponsors/DigitalSponsorSlot";
+import { ScorecardSponsorRow } from "@/components/sponsors/ScorecardSponsorRow";
 import type { Round } from "@/lib/types";
 
 /**
@@ -38,7 +40,10 @@ export default function ResultsPage() {
     setLoaded(true);
   }, [params.roundId]);
 
-  const course = round ? getCourse(round.courseId) : undefined;
+  // The course, live from the owner's Google Sheet when connected — so the
+  // share card and scorecard carry the current hole names.
+  const { course: liveCourse } = useLiveCourse(round?.courseId);
+  const course = round ? liveCourse : undefined;
   const board = useMemo(
     () => (round && course ? standings(round, course) : []),
     [round, course],
@@ -190,6 +195,10 @@ export default function ResultsPage() {
           Scorecard
         </h2>
         <Scorecard round={round} course={course} />
+        {/* Hole-sponsor credits, footnote style — same line the PDF prints. */}
+        <div className="mt-2">
+          <ScorecardSponsorRow courseId={course.id} />
+        </div>
       </section>
 
       {/* Balls used — only for venues that charge per ball (out of the score) */}
@@ -215,6 +224,12 @@ export default function ResultsPage() {
           </ul>
         </section>
       )}
+
+      {/* One rotating digital-sponsor slot — per-visit rotation, renders
+          nothing when no digital sponsors are active. */}
+      <div className="mt-6">
+        <DigitalSponsorSlot courseId={course.id} />
+      </div>
 
       {/* Completed-round PDF scorecard */}
       <button

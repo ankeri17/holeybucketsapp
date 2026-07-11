@@ -3,6 +3,7 @@ import { brand } from "@/config/branding";
 import { defaultCourse } from "@/config/courses";
 import { LogoLockup } from "@/components/icons";
 import { ResumeRoundButton } from "@/components/ResumeRoundButton";
+import { DigitalSponsorSlot } from "@/components/sponsors/DigitalSponsorSlot";
 
 /**
  * Landing page.
@@ -67,6 +68,10 @@ export default function Home() {
           Grab a club, pick your crew, and chase the bucket. No app store, no
           sign-up — just tap and play.
         </p>
+
+        {/* One rotating digital-sponsor slot — a different active sponsor can
+            come up on each visit. Renders nothing when none are active. */}
+        <DigitalSponsorSlot courseId={defaultCourse.id} />
       </div>
 
       <footer className="relative z-10 mt-12 text-sm">
