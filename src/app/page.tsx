@@ -48,7 +48,13 @@ export default function Home() {
             Start a round
           </Link>
 
-          {/* Secondary action — quieter, never out-weighs the primary. */}
+          {/* Secondary actions — quieter, never out-weigh the primary. */}
+          <Link
+            href="/how-to-play"
+            className="tap-target flex w-full items-center justify-center rounded-2xl border-2 border-brand-line bg-brand-card px-6 font-bold text-brand-deepPine active:bg-brand-cream"
+          >
+            How to play
+          </Link>
           <Link
             href="/course"
             className="tap-target flex w-full items-center justify-center rounded-2xl border-2 border-brand-line bg-brand-card px-6 font-bold text-brand-deepPine active:bg-brand-cream"
