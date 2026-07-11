@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { defaultCourse } from "@/config/courses";
-import { holePar, coursePar } from "@/lib/course";
+import { holePar, coursePar, courseYards } from "@/lib/course";
 import { PrintBlankButton } from "@/components/PrintBlankButton";
 
 /** Fallback tee thumbnail when a hole has no photo yet (generic, any course). */
@@ -64,7 +64,39 @@ export default function CoursePage() {
       <div className="mt-4 flex gap-3">
         <Stat value={course.holes.length} label="holes" />
         <Stat value={coursePar(course)} label="par" />
+        {courseYards(course) > 0 && (
+          <Stat value={courseYards(course)} label="yards" />
+        )}
       </div>
+
+      {/* Course-wide notes from the owner worksheet (Course Info tab) */}
+      {(course.startingTee || course.houseRules || course.outOfBounds) && (
+        <div className="mt-4 space-y-1.5 rounded-2xl border border-brand-line bg-brand-card p-4 text-sm shadow-sm">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
+            Good to know
+          </h2>
+          {course.startingTee && (
+            <p className="text-brand-ink">
+              <span className="font-semibold">First tee: </span>
+              {course.startingTee}
+            </p>
+          )}
+          {course.houseRules && (
+            <p className="text-brand-ink">
+              <span className="font-semibold">House rule: </span>
+              {course.houseRules}
+            </p>
+          )}
+          {course.outOfBounds && (
+            <p className="text-brand-ink">
+              <span className="font-semibold text-brand-penalty">
+                Out of bounds:{" "}
+              </span>
+              {course.outOfBounds}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="mt-4 mb-6">
         <PrintBlankButton course={course} />
@@ -78,10 +110,12 @@ export default function CoursePage() {
           >
             {/* Tee thumbnail with the hole number badged on it */}
             <div className="relative h-16 w-16 shrink-0">
+              {/* lazy: 18 real photos would otherwise load at once on a phone */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={hole.teePhoto ?? TEE_PLACEHOLDER}
                 alt=""
+                loading="lazy"
                 className="h-16 w-16 rounded-xl object-cover"
               />
               <span className="absolute -left-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-brand-primary text-xs font-extrabold text-white shadow">
@@ -102,8 +136,8 @@ export default function CoursePage() {
               </div>
 
               <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-sm text-brand-stone">
-                {hole.distancePaces != null && (
-                  <span>{hole.distancePaces} paces</span>
+                {hole.distanceYards != null && (
+                  <span>{hole.distanceYards} yds</span>
                 )}
                 {/* Only the label gets the warning color — with 15 of 18
                     holes carrying a hazard, all-orange text made the whole
@@ -133,8 +167,7 @@ export default function CoursePage() {
       </ol>
 
       <p className="mt-8 text-center text-xs text-brand-stone">
-        Hole details and photos are placeholders until the real course data is
-        added.
+        Tee photos are placeholders until the real course photos are added.
       </p>
 
       {/* Sticky start CTA — browsing the course shouldn't be a dead end.
