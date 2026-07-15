@@ -6,9 +6,21 @@ import { useLiveCourse, useLiveSponsors } from "@/lib/liveData";
 import { activeSponsors, holeSponsors } from "@/lib/sheets";
 import { PrintBlankButton } from "@/components/PrintBlankButton";
 import { TappablePhoto } from "@/components/TappablePhoto";
+import { RotatingHero } from "@/components/RotatingHero";
 
 /** Fallback tee thumbnail when a hole has no photo yet (generic, any course). */
 const TEE_PLACEHOLDER = "/placeholder-tee.svg";
+
+/** How many hole photos the hero cycles through — a taste, not the whole set,
+ *  so we don't ship a dozen full-size images to a phone on cell signal. */
+const HERO_PHOTO_COUNT = 5;
+
+/** Evenly spread a pick across a list (e.g. holes 1, 4, 8, 12, 16 of 16). */
+function sampleEvenly<T>(items: T[], count: number): T[] {
+  if (items.length <= count) return items;
+  const step = items.length / count;
+  return Array.from({ length: count }, (_, i) => items[Math.floor(i * step)]);
+}
 
 /**
  * Course preview page.
@@ -27,6 +39,21 @@ export default function CoursePage() {
   const sponsorByHole = holeSponsors(sponsors);
   const thanks = activeSponsors(sponsors);
 
+  // Hero: cycle the real tee photos behind the course name. A dedicated hero
+  // photo (not the built-in .svg placeholder) leads; the rest are hole shots.
+  // When nothing real exists, heroImages is empty and we show a text header.
+  const realHero =
+    course.heroImage && !course.heroImage.endsWith(".svg")
+      ? course.heroImage
+      : null;
+  const holePhotos = course.holes
+    .map((hole) => hole.teePhoto)
+    .filter((src): src is string => Boolean(src));
+  const heroImages = sampleEvenly(
+    [...(realHero ? [realHero] : []), ...holePhotos],
+    HERO_PHOTO_COUNT,
+  );
+
   return (
     <main className="mx-auto min-h-screen max-w-md px-5 pb-28 pt-6">
       <Link
@@ -36,16 +63,11 @@ export default function CoursePage() {
         ← Home
       </Link>
 
-      {/* Hero image with the course name overlaid, or a text header as fallback */}
-      {course.heroImage ? (
-        <div className="relative mt-4 overflow-hidden rounded-2xl">
-          <TappablePhoto
-            src={course.heroImage}
-            alt={`${course.name}`}
-            caption={course.name}
-            className="h-44 w-full object-cover"
-          />
-          {/* Overlays must not swallow taps meant for the photo below. */}
+      {/* Hero: a crossfading band of tee photos with the course name overlaid;
+          a text header when there are no real photos to show. */}
+      {heroImages.length > 0 ? (
+        <div className="relative mt-4 h-44 overflow-hidden rounded-2xl bg-brand-line">
+          <RotatingHero images={heroImages} alt={course.name} />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="pointer-events-none absolute bottom-0 p-4 text-white">
             <h1 className="font-display text-3xl font-extrabold tracking-tight">
