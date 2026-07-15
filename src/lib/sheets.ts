@@ -23,11 +23,22 @@ import type {
  * ----------------------------------------------------------------------------
  */
 
-/** The CSV-export URL for one tab of a link-shared Google Sheet. */
+/**
+ * The CSV-export URL for one tab of a link-shared Google Sheet.
+ *
+ * `headers=0` is load-bearing: without it, Google's gviz endpoint tries to
+ * guess how many header rows the tab has and folds them into column labels.
+ * On a worksheet with a title/instructions block above the real header (like
+ * the owner's tabs, where the header sits on row 3), that guess mangles the
+ * header row and the parser can't find the "Hole" / "Business Name" columns.
+ * `headers=0` makes gviz return every row raw, so parseHoleDetails /
+ * sponsorsFromSheet can locate the header themselves — which is exactly what
+ * they (and their tests) are built to do.
+ */
 export function sheetCsvUrl(sheetId: string, tabName: string): string {
   return (
     `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq` +
-    `?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`
+    `?tqx=out:csv&headers=0&sheet=${encodeURIComponent(tabName)}`
   );
 }
 
