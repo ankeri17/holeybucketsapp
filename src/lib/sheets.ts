@@ -129,6 +129,17 @@ function cellText(value: string | undefined): string | undefined {
   return trimmed ? trimmed : undefined;
 }
 
+/**
+ * True for a real web address, false for a founder note in the Website column
+ * (e.g. "(use black and white sample typography)") — so a note never renders
+ * as a broken sponsor link. Accepts "https://…" or a bare "domain.tld".
+ */
+function isWebLink(value: string): boolean {
+  const v = value.trim();
+  if (/\s/.test(v)) return false; // notes have spaces; URLs don't
+  return /^https?:\/\//i.test(v) || /^[\w-]+(\.[\w-]+)+/.test(v);
+}
+
 /** Pull the file id out of a Google Drive share link, or null if it isn't one. */
 function driveFileId(link: string): string | null {
   const match = link
@@ -424,14 +435,45 @@ export function sponsorsFromSheet(csv: string): Sponsor[] {
   const nameCol = header.findIndex((c) => c.startsWith("business name"));
   const tierCol = header.findIndex((c) => c === "tier");
   const statusCol = header.findIndex((c) => c === "status");
-  const holeCol = header.findIndex((c) => c.startsWith("hole"));
+  let holeCol = header.findIndex((c) => c.startsWith("hole"));
   const websiteCol = header.findIndex((c) => c.includes("website"));
   const logoCol = header.findIndex(
     (c) => c.includes("logo") && (c.includes("url") || c.includes("link")),
   );
 
+  const dataRows = rows.slice(headerIndex + 1);
+
+  // gviz blanks the header of the numeric "Hole #" column, so hole sponsors
+  // lose their hole (they show as "Hole ?" and never land on a hole). Recover
+  // it: the first blank-header column after Tier/Status whose filled cells all
+  // read as hole numbers (small positive integers) — which skips a blanked
+  // "Price ($)" column (0 / large values) sitting next to it.
+  if (holeCol === -1) {
+    const start = Math.max(tierCol, statusCol, 0) + 1;
+    const width = Math.max(header.length, ...dataRows.map((r) => r.length), 0);
+    for (let c = start; c < width; c++) {
+      if ((header[c] ?? "").trim() !== "") continue; // only blanked-header columns
+      let sawHole = false;
+      let ok = true;
+      for (const row of dataRows) {
+        const cell = (row[c] ?? "").trim();
+        if (!cell) continue;
+        const n = cellInt(cell);
+        if (n == null || n < 1 || n > 99) {
+          ok = false;
+          break;
+        }
+        sawHole = true;
+      }
+      if (ok && sawHole) {
+        holeCol = c;
+        break;
+      }
+    }
+  }
+
   const sponsors: Sponsor[] = [];
-  for (const row of rows.slice(headerIndex + 1)) {
+  for (const row of dataRows) {
     const name = cellText(row[nameCol]);
     if (!name) continue;
     if (row.some((c) => c.toLowerCase().includes("sample row"))) continue;
@@ -450,7 +492,7 @@ export function sponsorsFromSheet(csv: string): Sponsor[] {
     const sponsor: Sponsor = { name, tier, status };
     if (holeNumber != null) sponsor.holeNumber = holeNumber;
     const website = cellText(row[websiteCol]);
-    if (website) sponsor.website = website;
+    if (website && isWebLink(website)) sponsor.website = website;
     const logo = cellText(row[logoCol]);
     if (logo) sponsor.logoUrl = driveImageUrl(logo);
     sponsors.push(sponsor);

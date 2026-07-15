@@ -274,6 +274,29 @@ describe("sponsorsFromSheet", () => {
     expect(byHole.has(12)).toBe(false); // verbal yes ≠ live in the app
   });
 
+  it("recovers hole numbers when gviz blanks the Hole # header", () => {
+    // The shape gviz returns for the real tracker: text headers survive, but
+    // the numeric "Hole #" (and "Price ($)") headers come back blank. The hole
+    // numbers must still be read so hole sponsors land on their hole.
+    const csv = [
+      '"Business Name","Website","Tier","Status","",""',
+      '"Placeholder Hardware Store","(use black and white sample typography)","Hole","Active","1","0"',
+      '"Placeholder Coffee Shop","(use black and white sample typography)","Digital","Active","","0"',
+      '"ShopHappens.com","www.shophappens.com","Hole","Active","3","0"',
+    ].join("\r\n");
+    const sponsors = sponsorsFromSheet(csv);
+    const byHole = holeSponsors(sponsors);
+    expect(byHole.get(1)?.name).toBe("Placeholder Hardware Store");
+    expect(byHole.get(3)?.name).toBe("ShopHappens.com");
+    // The founder note in the Website column is not treated as a link…
+    expect(sponsors.find((s) => s.name === "Placeholder Hardware Store")?.website)
+      .toBeUndefined();
+    // …but a real address still is.
+    expect(sponsors.find((s) => s.name === "ShopHappens.com")?.website).toBe(
+      "www.shophappens.com",
+    );
+  });
+
   it("throws a fixable error when the header row is missing", () => {
     expect(() => sponsorsFromSheet('"nope","nothing"')).toThrow(/Business Name/);
   });
