@@ -118,18 +118,42 @@ function cellText(value: string | undefined): string | undefined {
   return trimmed ? trimmed : undefined;
 }
 
+/** Pull the file id out of a Google Drive share link, or null if it isn't one. */
+function driveFileId(link: string): string | null {
+  const match = link
+    .trim()
+    .match(/drive\.google\.com\/(?:file\/d\/([-\w]{10,})|\S*[?&]id=([-\w]{10,}))/);
+  return match?.[1] ?? match?.[2] ?? null;
+}
+
 /**
  * Turn a Google Drive *share* link (the kind you copy from "Share → Copy
  * link") into a direct image URL the app can put in an <img> tag. Any other
  * URL passes through untouched, so plain image links keep working.
+ *
+ * Used for LOGOS: this endpoint serves the file in its original format, so a
+ * sponsor's transparent PNG stays transparent.
  */
 export function driveImageUrl(link: string): string {
-  const trimmed = link.trim();
-  const match = trimmed.match(
-    /drive\.google\.com\/(?:file\/d\/([-\w]{10,})|\S*[?&]id=([-\w]{10,}))/,
-  );
-  const id = match?.[1] ?? match?.[2];
-  return id ? `https://lh3.googleusercontent.com/d/${id}` : trimmed;
+  const id = driveFileId(link);
+  return id ? `https://lh3.googleusercontent.com/d/${id}` : link.trim();
+}
+
+/**
+ * Like driveImageUrl, but for PHOTOS (tee shots, the course hero) rather than
+ * logos. Routes through Drive's thumbnail endpoint, which transcodes the
+ * source into a web-sized JPEG — crucially including iPhone .heic files, which
+ * browsers can't display in an <img> at all. As a side effect the thumbnail is
+ * re-encoded, dropping the photo's GPS/EXIF metadata (so a tee shot can't leak
+ * the property's coordinates). Sized down (sz=w1600) so a full-resolution
+ * phone photo isn't shipped over cell signal.
+ *
+ * Photos use this instead of driveImageUrl because the thumbnail endpoint
+ * flattens transparency onto white — fine for a photo, wrong for a logo.
+ */
+export function drivePhotoUrl(link: string): string {
+  const id = driveFileId(link);
+  return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w1600` : link.trim();
 }
 
 /* ----------------------------------------------------------------------------
@@ -252,7 +276,7 @@ function parseHoleDetails(
     const note = cellText(row[noteCol]);
     if (note) hole.note = note;
     const photo = cellText(row[photoCol]);
-    if (photo) hole.teePhoto = driveImageUrl(photo);
+    if (photo) hole.teePhoto = drivePhotoUrl(photo);
     holes.push(hole);
   }
 
@@ -285,7 +309,7 @@ function parseCourseInfo(csv: string): Partial<Course> {
     else if (label.includes("house rules")) info.houseRules = value;
     else if (label.includes("starting tee") || label.startsWith("best place"))
       info.startingTee = value;
-    else if (label.includes("hero")) info.heroImage = driveImageUrl(value);
+    else if (label.includes("hero")) info.heroImage = drivePhotoUrl(value);
   }
   return info;
 }
