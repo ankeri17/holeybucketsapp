@@ -233,12 +233,29 @@ function parseHoleDetails(
 ): { holes: Hole[]; distanceUnit?: Course["distanceUnit"] } {
   const rows = parseCsv(csv);
 
-  // The tab has a banner row above the real header — find the header by its
-  // content: a row with a "Hole" cell and a "Distance…" cell.
+  // Find the header row. Google's gviz CSV export blanks the text header of any
+  // column it decides is purely numeric — so on the real worksheet the "Hole",
+  // "Distance", and "Par" headers come back EMPTY while the numbers below them
+  // are intact. So we can't just look for a "Hole" cell. Instead, score each
+  // row by how many recognizable headers it has, take the first clear winner,
+  // then recover the three blanked numeric columns from the data itself.
+  const HEADER_SIGNALS: Array<(c: string) => boolean> = [
+    (c) => c === "hole",
+    (c) => c.startsWith("hole name"),
+    (c) => c.startsWith("distance"),
+    (c) => c === "par",
+    (c) => c.startsWith("hazard"),
+    (c) => c.startsWith("difficulty"),
+    (c) => c.includes("tee") && c.includes("location"),
+    (c) => c.startsWith("tip") || c === "note",
+    (c) => c.includes("photo") && (c.includes("url") || c.includes("link")),
+    (c) => c.includes("photo") && c.includes("taken"),
+  ];
   let headerIndex = -1;
-  for (let i = 0; i < Math.min(rows.length, 10); i++) {
+  for (let i = 0; i < rows.length; i++) {
     const cells = rows[i].map(norm);
-    if (cells.includes("hole") && cells.some((c) => c.startsWith("distance"))) {
+    const score = HEADER_SIGNALS.reduce((n, sig) => n + (cells.some(sig) ? 1 : 0), 0);
+    if (score >= 2) {
       headerIndex = i;
       break;
     }
@@ -246,18 +263,59 @@ function parseHoleDetails(
   if (headerIndex === -1) return { holes: [] };
 
   const header = rows[headerIndex].map(norm);
+  const dataRows = rows.slice(headerIndex + 1);
   const col = (predicate: (cell: string) => boolean) =>
     header.findIndex(predicate);
 
-  const numberCol = col((c) => c === "hole");
   const nameCol = col((c) => c.startsWith("hole name"));
-  const distanceCol = col((c) => c.startsWith("distance"));
-  const parCol = col((c) => c === "par");
   const hazardsCol = col((c) => c.startsWith("hazard"));
   const difficultyCol = col((c) => c.startsWith("difficulty"));
   const teeLocationCol = col((c) => c.includes("tee") && c.includes("location"));
   const noteCol = col((c) => c.startsWith("tip") || c === "note");
   const photoCol = col((c) => c.includes("photo") && (c.includes("url") || c.includes("link")));
+
+  // Hole, Distance, and Par are the columns gviz tends to blank. Try the header
+  // text first; when it's empty, recover the column from the data below.
+  let numberCol = col((c) => c === "hole");
+  let distanceCol = col((c) => c.startsWith("distance"));
+  let parCol = col((c) => c === "par");
+
+  if (numberCol === -1 || distanceCol === -1 || parCol === -1) {
+    const claimed = new Set(
+      [nameCol, hazardsCol, difficultyCol, teeLocationCol, noteCol, photoCol,
+        numberCol, distanceCol, parCol].filter((i) => i >= 0),
+    );
+    // Unclaimed columns whose every data cell is a positive integer, with the
+    // largest value seen — enough to tell holes/distance/par apart by shape.
+    const width = Math.max(header.length, ...dataRows.map((r) => r.length), 0);
+    const intCols: Array<{ index: number; max: number }> = [];
+    for (let c = 0; c < width; c++) {
+      if (claimed.has(c)) continue;
+      let max = 0;
+      let allInt = dataRows.length > 0;
+      for (const row of dataRows) {
+        const cell = (row[c] ?? "").trim();
+        if (!/^\d+$/.test(cell)) {
+          allInt = false;
+          break;
+        }
+        max = Math.max(max, parseInt(cell, 10));
+      }
+      if (allInt) intCols.push({ index: c, max });
+    }
+    // Hole numbers are the leftmost all-numeric column.
+    if (numberCol === -1 && intCols.length > 0) numberCol = intCols[0].index;
+    // Of what's left, par is the small-valued one (bucket-golf pars are single
+    // digit) and distance is the larger-valued one.
+    const rest = intCols
+      .filter((x) => x.index !== numberCol)
+      .sort((a, b) => a.max - b.max);
+    if (parCol === -1 && rest.length > 0 && rest[0].max <= 9) parCol = rest[0].index;
+    if (distanceCol === -1) {
+      const distCandidate = rest.filter((x) => x.index !== parCol).pop();
+      if (distCandidate) distanceCol = distCandidate.index;
+    }
+  }
 
   // The distance header itself says what unit was used: "Distance (yds)".
   const distanceHeader = distanceCol >= 0 ? header[distanceCol] : "";
@@ -268,7 +326,7 @@ function parseHoleDetails(
       : undefined;
 
   const holes: Hole[] = [];
-  for (const row of rows.slice(headerIndex + 1)) {
+  for (const row of dataRows) {
     const number = cellInt(row[numberCol]);
     if (number == null || number > 99) continue; // not a hole row
     const hole: Hole = { number };
