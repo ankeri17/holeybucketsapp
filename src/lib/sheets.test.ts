@@ -86,9 +86,9 @@ describe("assertCsvResponse", () => {
 });
 
 describe("sheetCsvUrl", () => {
-  it("builds the gviz CSV url with the tab name encoded", () => {
+  it("builds the gviz CSV url with headers=0 and the tab name encoded", () => {
     expect(sheetCsvUrl("abc123", "Hole Details")).toBe(
-      "https://docs.google.com/spreadsheets/d/abc123/gviz/tq?tqx=out:csv&sheet=Hole%20Details",
+      "https://docs.google.com/spreadsheets/d/abc123/gviz/tq?tqx=out:csv&headers=0&sheet=Hole%20Details",
     );
   });
 });
@@ -187,6 +187,26 @@ describe("courseFromSheets", () => {
       "https://drive.google.com/thumbnail?id=1PhotoIdAbc123&sz=w1600",
     );
     expect(course.distanceUnit).toBe("paces");
+  });
+
+  it("finds the header when it sits on row 3, below a title and a blank row", () => {
+    // Mirrors the owner's real Hole Details tab: a title, a spacer, then the
+    // header on row 3, with a Photo URL column and photos on holes 17 & 18.
+    const csv = [
+      '"The Gray Duck — Hole Details","","",""',
+      '"","","",""',
+      '"Hole","Distance (yds)","Photo taken? (Y/N)","Photo URL"',
+      '"17","39","Y","https://drive.google.com/file/d/17photoId000/view"',
+      '"18","36","Y","https://drive.google.com/file/d/18photoId000/view"',
+    ].join("\r\n");
+    const { course } = courseFromSheets(BASE, null, csv);
+    expect(course.holes.map((h) => h.number)).toEqual([17, 18]);
+    expect(course.holes[0].teePhoto).toBe(
+      "https://drive.google.com/thumbnail?id=17photoId000&sz=w1600",
+    );
+    expect(course.holes[1].teePhoto).toBe(
+      "https://drive.google.com/thumbnail?id=18photoId000&sz=w1600",
+    );
   });
 
   it("throws a fixable error when no hole rows are found", () => {
