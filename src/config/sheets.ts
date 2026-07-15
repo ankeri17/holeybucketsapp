@@ -40,7 +40,7 @@ export const sheetsConfig = {
    * The course details worksheet ("holey-buckets-course-details") — the one
    * with the Course Info and Hole Details tabs. Paste its sheet ID here.
    */
-  courseSheetId: "",
+  courseSheetId: "1KTEQXxZChQ2W8dcBhAdgCNyoD-Lz-X24HQaYJWR0KzY",
   courseInfoTab: "Course Info",
   holeDetailsTab: "Hole Details",
 
@@ -54,7 +54,7 @@ export const sheetsConfig = {
    * here. The app never reads contact columns either way, but the safe-sheet
    * route means they're never exposed at all.
    */
-  sponsorSheetId: "",
+  sponsorSheetId: "1j9VDZbnt81uKEDWW2CDRYW7xl34W8WvL5Y-kgvELcWE",
   sponsorTab: "Sponsor Pipeline",
 
   /**
@@ -63,9 +63,9 @@ export const sheetsConfig = {
    */
   links: {
     courseWorksheet:
-      "https://drive.google.com/file/d/1DI1ETFqTGhi7IBFcbEGIa3BswcYQ4z79/view",
+      "https://docs.google.com/spreadsheets/d/1KTEQXxZChQ2W8dcBhAdgCNyoD-Lz-X24HQaYJWR0KzY/edit",
     sponsorTracker:
-      "https://drive.google.com/file/d/1kKTDYL5cwtJn5ECJgpGIS7j8v2aXYpfE/view",
+      "https://docs.google.com/spreadsheets/d/1j9VDZbnt81uKEDWW2CDRYW7xl34W8WvL5Y-kgvELcWE/edit",
     photosFolder:
       "https://drive.google.com/drive/folders/1GyrLeSKzHN6oGiWHHqyqWGwAg0oNd4Pg",
   },
