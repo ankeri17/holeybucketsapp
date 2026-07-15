@@ -209,6 +209,31 @@ describe("courseFromSheets", () => {
     );
   });
 
+  it("recovers Hole/Distance/Par when gviz blanks their numeric headers", () => {
+    // The EXACT shape gviz returns for the real Hole Details tab: the Hole,
+    // Distance, and Par header cells come back empty (gviz strips headers of
+    // columns it reads as numeric), while the data below is intact.
+    const csv = [
+      '"","Hole Name (optional)","","","Hazards / Obstacles","Difficulty Rank (1-5)  (1 = hardest)","Tee & Bucket Location","Tip / Note (optional)","Photo taken? (Y/N)","Photo URL"',
+      '"1","Big Shot","30","3","","","","","y","https://drive.google.com/file/d/11YIyKW910G43Uz7CdXDiuGnMFrao3cbQ/view?usp=drive_link"',
+      '"3","Them Apples","17","2","","","","","y","https://drive.google.com/file/d/1FODBS7T5y-BkQHLcT3FR6KGHABbiPyTh/view?usp=sharing"',
+      '"5","Fire","38","4","","","","","y",""',
+      '"17","Deck Party","39","4","","","","","y","https://drive.google.com/file/d/1R-US5IVno0aZZ3ALMYH6q_NE05bzE_zt/view?usp=sharing"',
+      '"18","Hello Again","36","3","","","","","y","https://drive.google.com/file/d/1lVswyWc9wLrF8HCeWcPD4xax6ITZf_xK/view?usp=sharing"',
+    ].join("\r\n");
+    const { course } = courseFromSheets(BASE, null, csv);
+    expect(course.holes.map((h) => h.number)).toEqual([1, 3, 5, 17, 18]);
+    expect(course.holes[0]).toMatchObject({ name: "Big Shot", distance: 30 });
+    expect(course.holes[1]).toMatchObject({ number: 3, distance: 17, par: 2 });
+    expect(course.holes[2]).toMatchObject({ number: 5, distance: 38, par: 4 });
+    expect(course.holes[4]).toMatchObject({ number: 18, distance: 36 });
+    expect(course.holes[4].teePhoto).toBe(
+      "https://drive.google.com/thumbnail?id=1lVswyWc9wLrF8HCeWcPD4xax6ITZf_xK&sz=w1600",
+    );
+    // Par is read straight from the (recovered) Par column.
+    expect(course.holes[0].par).toBe(3);
+  });
+
   it("throws a fixable error when no hole rows are found", () => {
     expect(() => courseFromSheets(BASE, null, '"just","junk"')).toThrow(
       /Hole Details/,
