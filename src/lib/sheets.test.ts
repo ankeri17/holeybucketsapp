@@ -4,6 +4,7 @@ import {
   assertCsvResponse,
   courseFromSheets,
   driveImageUrl,
+  drivePhotoUrl,
   holeSponsors,
   parseCsv,
   sheetCsvUrl,
@@ -112,6 +113,23 @@ describe("driveImageUrl", () => {
   });
 });
 
+describe("drivePhotoUrl", () => {
+  it("routes a Drive photo through the thumbnail endpoint (transcodes .heic, sizes down)", () => {
+    expect(
+      drivePhotoUrl("https://drive.google.com/file/d/1AbC_dEf-123456/view?usp=sharing"),
+    ).toBe("https://drive.google.com/thumbnail?id=1AbC_dEf-123456&sz=w1600");
+    expect(drivePhotoUrl("https://drive.google.com/open?id=1AbC_dEf-123456")).toBe(
+      "https://drive.google.com/thumbnail?id=1AbC_dEf-123456&sz=w1600",
+    );
+  });
+
+  it("passes non-Drive URLs through untouched", () => {
+    expect(drivePhotoUrl("/courses/grayduck/hole-01.jpg")).toBe(
+      "/courses/grayduck/hole-01.jpg",
+    );
+  });
+});
+
 describe("courseFromSheets", () => {
   it("reads holes from the real worksheet layout", () => {
     const { course } = courseFromSheets(BASE, COURSE_INFO_CSV, HOLE_DETAILS_CSV);
@@ -166,7 +184,7 @@ describe("courseFromSheets", () => {
     ].join("\n");
     const { course } = courseFromSheets(BASE, null, csv);
     expect(course.holes[0].teePhoto).toBe(
-      "https://lh3.googleusercontent.com/d/1PhotoIdAbc123",
+      "https://drive.google.com/thumbnail?id=1PhotoIdAbc123&sz=w1600",
     );
     expect(course.distanceUnit).toBe("paces");
   });
