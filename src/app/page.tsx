@@ -19,7 +19,8 @@ import { ConfettiBackdrop } from "@/components/ConfettiBackdrop";
  * The house rules at /how-to-play are course-flavored (ball prices, where the
  * clubhouse is), so they are deliberately NOT linked from here — each course
  * home links them instead. (Founder note, 2026-07-16: house rules should
- * become course-configurable data eventually.)
+ * become course-configurable data eventually — likely a tab in the course
+ * info Google Sheet, alongside the existing Course Info tab.)
  *
  * Scoring language here ("chip in", "−1", "+1") matches src/lib/scoring.ts so
  * the pitch and the scorecard never disagree.
