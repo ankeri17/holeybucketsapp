@@ -67,10 +67,14 @@ export default function Home() {
               instead of a hole — and the bucket&apos;s never too far away. No
               dress code, no experience needed: anyone can play and enjoy it.
             </p>
+            {/* Holey Buckets is the whole game experience — the courses are
+                Holey Buckets locations and this site is just its scorekeeper.
+                Never describe the brand as "the app" (founder, 2026-07-16). */}
             <p className="text-sm text-brand-stone">
-              Holey Buckets is the game&apos;s digital companion: keep score on
-              your phone and share the bragging rights after. No app store, no
-              sign-up — just tap and play.
+              Holey Buckets is the whole experience — the game, the courses
+              it&apos;s played on, and the scorekeeper you&apos;re using right
+              now. Keep score on your phone and share the bragging rights
+              after: no app store, no sign-up, just tap and play.
             </p>
           </div>
         </section>
@@ -137,7 +141,8 @@ export default function Home() {
             ))}
           </div>
           <p className="mt-3 text-center text-sm text-brand-stone">
-            More locations are on the way.
+            Every course here is a Holey Buckets location — and more are on
+            the way, public courses and private backyards alike.
           </p>
         </section>
 
