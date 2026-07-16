@@ -4,6 +4,7 @@ import Link from "next/link";
 import { holePar, coursePar } from "@/lib/course";
 import { useLiveCourse, useLiveSponsors } from "@/lib/liveData";
 import { activeSponsors, holeSponsors } from "@/lib/sheets";
+import { sponsorHref } from "@/lib/sponsors";
 import { PrintBlankButton } from "@/components/PrintBlankButton";
 import { TappablePhoto } from "@/components/TappablePhoto";
 import { RotatingHero } from "@/components/RotatingHero";
@@ -135,6 +136,7 @@ export default function CoursePage() {
       <ol className="space-y-3 tabular-nums">
         {course.holes.map((hole) => {
           const sponsor = sponsorByHole.get(hole.number);
+          const sponsorLink = sponsorHref(sponsor?.website);
           return (
             <li
               key={hole.number}
@@ -198,9 +200,9 @@ export default function CoursePage() {
                 {sponsor && (
                   <p className="mt-1 text-xs font-semibold text-brand-deepPine">
                     Sponsored by{" "}
-                    {sponsor.website ? (
+                    {sponsorLink ? (
                       <a
-                        href={sponsor.website}
+                        href={sponsorLink}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="underline"
@@ -225,23 +227,26 @@ export default function CoursePage() {
             Thanks to our sponsors
           </h2>
           <p className="mt-1.5 text-sm font-semibold text-brand-ink">
-            {thanks.map((sponsor, i) => (
-              <span key={sponsor.name}>
-                {i > 0 && " · "}
-                {sponsor.website ? (
-                  <a
-                    href={sponsor.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline decoration-brand-stone/40"
-                  >
-                    {sponsor.name}
-                  </a>
-                ) : (
-                  sponsor.name
-                )}
-              </span>
-            ))}
+            {thanks.map((sponsor, i) => {
+              const href = sponsorHref(sponsor.website);
+              return (
+                <span key={sponsor.name}>
+                  {i > 0 && " · "}
+                  {href ? (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline decoration-brand-stone/40"
+                    >
+                      {sponsor.name}
+                    </a>
+                  ) : (
+                    sponsor.name
+                  )}
+                </span>
+              );
+            })}
           </p>
         </section>
       )}

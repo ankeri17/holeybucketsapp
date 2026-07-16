@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { sponsorHref } from "@/lib/sponsors";
 import type { Sponsor } from "@/lib/types";
 
 /**
@@ -36,8 +37,10 @@ export function SponsorLogo({
 }
 
 /**
- * Wraps a placement in the sponsor's website link when they have one
- * (new tab, `rel="noopener"`), or renders it as-is when they don't.
+ * Wraps a placement in the sponsor's website link when they have one (new tab,
+ * `rel="noopener noreferrer"`), or renders it as-is when they don't. The URL is
+ * normalized to absolute via sponsorHref, so a bare hostname from the tracker
+ * ("shophappens.com") never resolves as a relative in-app path.
  * A future click-tracking hook belongs here — one place, every placement.
  */
 export function SponsorLink({
@@ -49,14 +52,15 @@ export function SponsorLink({
   className?: string;
   children: React.ReactNode;
 }) {
-  if (!sponsor.website) {
+  const href = sponsorHref(sponsor.website);
+  if (!href) {
     return <span className={className}>{children}</span>;
   }
   return (
     <a
-      href={sponsor.website}
+      href={href}
       target="_blank"
-      rel="noopener"
+      rel="noopener noreferrer"
       aria-label={`Visit sponsor ${sponsor.name}`}
       className={className}
     >

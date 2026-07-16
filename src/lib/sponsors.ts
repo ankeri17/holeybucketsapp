@@ -37,6 +37,29 @@ export function holeSponsor(
 }
 
 /**
+ * Turn a sponsor's website into a safe, ABSOLUTE URL to use as a link `href`.
+ *
+ * Owners type websites into the tracker however they like — most often as a
+ * bare hostname ("shophappens.com", "ShopHappens.com"), which the sheet parser
+ * accepts (see isWebLink in src/lib/sheets.ts). A bare hostname used directly as
+ * an `href` is treated by the browser as a RELATIVE path, so tapping it on
+ * /course navigated to ".../course/shophappens.com" instead of leaving the app.
+ * Prepending the scheme when it's missing makes every sponsor link absolute.
+ *
+ * Returns undefined when there's no usable website, so callers can decide
+ * whether to render a link at all.
+ */
+export function sponsorHref(website: string | undefined): string | undefined {
+  const trimmed = website?.trim();
+  if (!trimmed) return undefined;
+  // Already absolute (http:// or https://) — use as-is.
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  // Bare hostname, or a protocol-relative "//host" — make it absolute over
+  // https so the browser doesn't resolve it against the current page path.
+  return `https://${trimmed.replace(/^\/+/, "")}`;
+}
+
+/**
  * Validate a course's bundled sponsor list. Throws (build/load failure, on
  * purpose — loud beats wrong) when:
  *   - two sponsors share an id,

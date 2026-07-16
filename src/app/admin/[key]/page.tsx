@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { holePar, coursePar } from "@/lib/course";
 import { useLiveCourse, useLiveSponsors, type LiveStatus } from "@/lib/liveData";
 import { activeSponsors, holeSponsors } from "@/lib/sheets";
+import { sponsorHref } from "@/lib/sponsors";
 import { sheetsConfig } from "@/config/sheets";
 import type { Sponsor, SponsorStatus } from "@/lib/types";
 
@@ -455,7 +456,7 @@ function SponsorRow({ sponsor }: { sponsor: Sponsor }) {
           <p className="truncate font-semibold text-brand-ink">{sponsor.name}</p>
           {sponsor.website && (
             <a
-              href={sponsor.website}
+              href={sponsorHref(sponsor.website)}
               target="_blank"
               rel="noopener noreferrer"
               className="truncate text-xs text-brand-deepPine underline"

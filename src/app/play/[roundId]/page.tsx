@@ -16,6 +16,7 @@ import {
   playerBalls,
 } from "@/lib/scoring";
 import { ChipInIcon, FoliageIcon } from "@/components/icons";
+import { HoleSponsorBanner } from "@/components/sponsors/HoleSponsorBanner";
 import type { HoleScore, Round } from "@/lib/types";
 
 /** Fallback tee photo when a hole has none (generic, any course). */
@@ -267,13 +268,13 @@ export default function PlayRoundPage() {
           {hole.note && (
             <p className="mt-1 text-sm italic opacity-80">{hole.note}</p>
           )}
-          {sponsor && (
-            <p className="mt-1.5 text-xs font-semibold uppercase tracking-wide opacity-80">
-              Hole sponsored by {sponsor.name}
-            </p>
-          )}
         </div>
       </section>
+
+      {/* Hole sponsor — a tappable banner (logo or name) on its own card below
+          the green header, where it sits on the cream background the sponsor
+          logos are designed for. Tappable through to the sponsor's site. */}
+      {sponsor && <HoleSponsorBanner sponsor={sponsor} />}
 
       {/* Player scorers */}
       <div className="mt-4 space-y-3 tabular-nums">
