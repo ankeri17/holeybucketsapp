@@ -176,7 +176,7 @@ deliberate MVP limitation, and the results page tells users so.
 
 | Route | Mode | Purpose |
 |---|---|---|
-| `/` | static | Course-agnostic landing (since 2026-07-16): what Holey Buckets / bucket golf is, a 3-step how-to-play summary (full rules → `/how-to-play`), and a "Find your course" list with one card per registry course → `/courses/<id>`. |
+| `/` | static | Course-agnostic landing (since 2026-07-16): what Holey Buckets / bucket golf is, a 3-step how-to-play summary, and a "Find your course" list with one card per registry course → `/courses/<id>`. Deliberately does NOT link `/how-to-play` — the house rules are course-flavored, so only each course home links them. |
 | `/courses/[courseId]` | SSG (●) | Per-course home — the screen a course card lands on: resume-round button, "Start a round" → `/start`, links to `/how-to-play` and `/course`, rotating sponsor slot. Prebuilt for every registered course via `generateStaticParams`; unknown ids 404. |
 | `/how-to-play` | static | The house rules as a short numbered list, with a sticky "Start a round" CTA. |
 | `/admin/[key]` | dynamic (ƒ) | Owner admin panel, gated by the `adminKey` in `src/config/sheets.ts`; a wrong key renders only "There's nothing at this address." |

@@ -12,9 +12,14 @@ import { ConfettiBackdrop } from "@/components/ConfettiBackdrop";
  * Deliberately NOT course-specific: it answers "what is this?" for someone who
  * just followed a share card or heard about bucket golf, then routes players to
  * their course. Three jobs, in order: (1) what Holey Buckets / bucket golf is,
- * (2) the 30-second version of how to play and score (the full house rules live
- * at /how-to-play), (3) find your course — every course in the registry gets a
- * card linking to its own home at /courses/<id>, where the round starts.
+ * (2) the 30-second version of how to play and score, (3) find your course —
+ * every course in the registry gets a card linking to its own home at
+ * /courses/<id>, where the round starts.
+ *
+ * The house rules at /how-to-play are course-flavored (ball prices, where the
+ * clubhouse is), so they are deliberately NOT linked from here — each course
+ * home links them instead. (Founder note, 2026-07-16: house rules should
+ * become course-configurable data eventually.)
  *
  * Scoring language here ("chip in", "−1", "+1") matches src/lib/scoring.ts so
  * the pitch and the scorecard never disagree.
@@ -55,17 +60,17 @@ export default function Home() {
           </h2>
           <div className="mt-2 space-y-3 rounded-2xl border border-brand-line bg-brand-card p-4 shadow-sm">
             <p className="font-display text-xl font-bold leading-snug text-brand-ink">
-              Bucket golf: real golf, shrunk down to backyard size.
+              Bucket golf: a bit like golf, shrunk down to backyard size.
             </p>
             <p className="text-sm text-brand-stone">
-              You chip a ball from a tee toward a bucket, count your strokes,
-              and the lowest score wins. No fancy clubs, no dress code, no
-              experience needed — if you can swing, you can play.
+              You swing a modified club at a wiffle ball, aiming for a bucket
+              instead of a hole — and the bucket&apos;s never too far away. No
+              dress code, no experience needed: anyone can play and enjoy it.
             </p>
             <p className="text-sm text-brand-stone">
               Holey Buckets is the game&apos;s digital companion: keep score on
-              your phone, watch the live leaderboard, and share the bragging
-              rights after. No app store, no sign-up — just tap and play.
+              your phone and share the bragging rights after. No app store, no
+              sign-up — just tap and play.
             </p>
           </div>
         </section>
@@ -95,12 +100,6 @@ export default function Home() {
               </li>
             ))}
           </ol>
-          <Link
-            href="/how-to-play"
-            className="tap-target mt-3 flex w-full items-center justify-center rounded-2xl border-2 border-brand-line bg-brand-card px-6 font-bold text-brand-deepPine active:bg-brand-cream"
-          >
-            Read the house rules →
-          </Link>
         </section>
 
         {/* Find your course — one card per registered course. When new
@@ -154,24 +153,25 @@ export default function Home() {
 }
 
 /**
- * The 30-second pitch of the game. Rule numbers must agree with
- * src/lib/scoring.ts (chip into the bucket = −1, each penalty = +1) and with
- * the fuller wording on /how-to-play.
+ * The 30-second pitch of the game (founder's wording, 2026-07-16: hitting the
+ * bucket finishes the hole — you don't need to chip it in, but chipping it in
+ * earns the bonus). Rule numbers must agree with src/lib/scoring.ts (chip into
+ * the bucket = −1, each penalty = +1).
  */
 const HOW_TO_PLAY: { title: string; detail: string }[] = [
   {
     title: "Tee off toward the bucket",
     detail:
-      "Chip your ball from the tee and keep swinging until it lands in the bucket. Every swing counts as a stroke.",
+      "Chip your wiffle ball from the tee toward the bucket. Every swing counts as a stroke.",
+  },
+  {
+    title: "Hit the bucket to finish the hole",
+    detail:
+      "Any hit ends the hole — you don't need to sink it. Chip it all the way in and take −1 off your score.",
   },
   {
     title: "Fewest strokes wins",
     detail:
-      "Each hole has a par, most are par 3. Add up your strokes across the round — the lowest total takes it.",
-  },
-  {
-    title: "Bonuses and penalties",
-    detail:
-      "Chip one straight into the bucket and take −1 off that hole. Foliage, water, or out of bounds costs +1 each.",
+      "Add up your strokes across the round — the lowest total takes it. Foliage, water, or out of bounds costs +1 each.",
   },
 ];
