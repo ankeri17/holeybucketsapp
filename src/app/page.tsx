@@ -1,83 +1,177 @@
 import Link from "next/link";
 import { brand } from "@/config/branding";
-import { defaultCourse } from "@/config/courses";
+import { courses } from "@/config/courses";
+import { coursePar } from "@/lib/course";
 import { LogoLockup } from "@/components/icons";
 import { ResumeRoundButton } from "@/components/ResumeRoundButton";
-import { DigitalSponsorSlot } from "@/components/sponsors/DigitalSponsorSlot";
+import { ConfettiBackdrop } from "@/components/ConfettiBackdrop";
 
 /**
- * Landing page.
+ * Landing page — the friendly front door of the whole site.
  *
- * One clear primary action (Start a round) carried by the boldest element on
- * screen, with the course preview as a quieter secondary. Vertically centered
- * so it doesn't feel top-heavy.
+ * Deliberately NOT course-specific: it answers "what is this?" for someone who
+ * just followed a share card or heard about bucket golf, then routes players to
+ * their course. Three jobs, in order: (1) what Holey Buckets / bucket golf is,
+ * (2) the 30-second version of how to play and score (the full house rules live
+ * at /how-to-play), (3) find your course — every course in the registry gets a
+ * card linking to its own home at /courses/<id>, where the round starts.
+ *
+ * Scoring language here ("chip in", "−1", "+1") matches src/lib/scoring.ts so
+ * the pitch and the scorecard never disagree.
  */
 export default function Home() {
   return (
-    <main className="relative mx-auto flex min-h-screen max-w-md flex-col items-center justify-center overflow-hidden px-6 py-10 text-center">
-      {/* Confetti motif — backyard-party energy, behind the content. Yellow
-          stays a confetti accent here, never a competing button. */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <span className="absolute left-9 top-24 h-3 w-3 rounded-full bg-brand-sunshine" />
-        <span className="absolute right-12 top-16 h-2.5 w-2.5 rounded-full bg-brand-bucketBlue" />
-        <span className="absolute left-20 top-40 h-2 w-2 rounded-full bg-brand-penalty" />
-        <span className="absolute right-16 top-44 h-3 w-3 rounded-full bg-brand-sunshine/80" />
-        <span className="absolute left-1/2 top-10 h-2 w-2 rounded-full bg-brand-penalty/70" />
-        <span className="absolute right-24 top-1/3 h-2 w-2 rounded-full bg-brand-bucketBlue/70" />
-        <span className="absolute left-12 top-1/2 h-2.5 w-2.5 rounded-full bg-brand-sunshine/70" />
-      </div>
+    <main className="relative mx-auto min-h-screen max-w-md overflow-hidden px-5 pb-10 pt-10">
+      <ConfettiBackdrop />
 
-      <div className="relative z-10 flex flex-col items-center gap-6">
-        <div className="flex flex-col items-center">
+      <div className="relative z-10 flex flex-col gap-8">
+        {/* Hero — who we are, plus one clear action for someone ready to play. */}
+        <header className="flex flex-col items-center text-center">
           <LogoLockup markClassName="h-24 w-24" />
           <p className="mt-2 text-lg font-medium text-brand-stone">
             {brand.tagline}
           </p>
-        </div>
 
-        <div className="w-full space-y-3 pt-2">
-          {/* If a round is in progress on this phone, the way back in comes
-              first — nobody should lose their group's scores to a locked
-              screen. Renders nothing when there's no active round. */}
-          <ResumeRoundButton />
+          <div className="mt-6 w-full space-y-3">
+            {/* If a round is in progress on this phone, the way back in comes
+                first — nobody should lose their group's scores to a locked
+                screen. Renders nothing when there's no active round. */}
+            <ResumeRoundButton />
 
-          {/* Primary action — the boldest thing on the screen. */}
-          <Link
-            href="/start"
-            className="tap-target flex w-full items-center justify-center rounded-2xl bg-brand-primary px-6 py-4 text-xl font-extrabold text-white shadow-lg shadow-brand-primary/25 active:bg-brand-deepPine"
-          >
-            Start a round
-          </Link>
+            {/* Primary action — jumps to the course list below. */}
+            <a
+              href="#find-your-course"
+              className="tap-target flex w-full items-center justify-center rounded-2xl bg-brand-primary px-6 py-4 text-xl font-extrabold text-white shadow-lg shadow-brand-primary/25 active:bg-brand-deepPine"
+            >
+              Find your course
+            </a>
+          </div>
+        </header>
 
-          {/* Secondary actions — quieter, never out-weigh the primary. */}
+        {/* What is Holey Buckets? */}
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
+            What is Holey Buckets?
+          </h2>
+          <div className="mt-2 space-y-3 rounded-2xl border border-brand-line bg-brand-card p-4 shadow-sm">
+            <p className="font-display text-xl font-bold leading-snug text-brand-ink">
+              Bucket golf: real golf, shrunk down to backyard size.
+            </p>
+            <p className="text-sm text-brand-stone">
+              You chip a ball from a tee toward a bucket, count your strokes,
+              and the lowest score wins. No fancy clubs, no dress code, no
+              experience needed — if you can swing, you can play.
+            </p>
+            <p className="text-sm text-brand-stone">
+              Holey Buckets is the game&apos;s digital companion: keep score on
+              your phone, watch the live leaderboard, and share the bragging
+              rights after. No app store, no sign-up — just tap and play.
+            </p>
+          </div>
+        </section>
+
+        {/* How to play — the 30-second version; the house rules page has the rest. */}
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
+            How to play
+          </h2>
+          <ol className="mt-2 space-y-3">
+            {HOW_TO_PLAY.map((step, i) => (
+              <li
+                key={step.title}
+                className="flex gap-3 rounded-2xl border border-brand-line bg-brand-card p-4 shadow-sm"
+              >
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-primary text-sm font-extrabold text-white shadow">
+                  {i + 1}
+                </span>
+                <div className="min-w-0">
+                  <p className="font-display font-bold text-brand-ink">
+                    {step.title}
+                  </p>
+                  <p className="mt-0.5 text-sm text-brand-stone">
+                    {step.detail}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
           <Link
             href="/how-to-play"
-            className="tap-target flex w-full items-center justify-center rounded-2xl border-2 border-brand-line bg-brand-card px-6 font-bold text-brand-deepPine active:bg-brand-cream"
+            className="tap-target mt-3 flex w-full items-center justify-center rounded-2xl border-2 border-brand-line bg-brand-card px-6 font-bold text-brand-deepPine active:bg-brand-cream"
           >
-            How to play
+            Read the house rules →
           </Link>
-          <Link
-            href="/course"
-            className="tap-target flex w-full items-center justify-center rounded-2xl border-2 border-brand-line bg-brand-card px-6 font-bold text-brand-deepPine active:bg-brand-cream"
-          >
-            See {defaultCourse.name} →
-          </Link>
-        </div>
+        </section>
 
-        <p className="max-w-[18rem] text-sm font-medium text-brand-stone">
-          Grab a club, pick your crew, and chase the bucket. No app store, no
-          sign-up — just tap and play.
-        </p>
+        {/* Find your course — one card per registered course. When new
+            locations join the registry (src/config/courses/index.ts) they
+            appear here automatically; nothing on this page names a course. */}
+        <section id="find-your-course" className="scroll-mt-6">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
+            Find your course
+          </h2>
+          <p className="mt-1 font-display text-2xl font-extrabold tracking-tight text-brand-ink">
+            Pick a spot, play a round
+          </p>
+          <div className="mt-3 space-y-3">
+            {courses.map((course) => (
+              <Link
+                key={course.id}
+                href={`/courses/${course.id}`}
+                className="flex items-center justify-between gap-3 rounded-2xl border-2 border-brand-primary/40 bg-brand-card p-4 shadow-sm active:bg-brand-cream"
+              >
+                <span className="min-w-0">
+                  <span className="block font-display text-xl font-extrabold text-brand-ink">
+                    {course.name}
+                  </span>
+                  <span className="block text-sm font-medium text-brand-stone">
+                    {course.location}
+                  </span>
+                  <span className="mt-0.5 block text-xs font-semibold uppercase tracking-[0.06em] text-brand-stone">
+                    {course.holes.length} holes · par {coursePar(course)}
+                  </span>
+                </span>
+                <span className="shrink-0 text-xl font-bold text-brand-primary">
+                  →
+                </span>
+              </Link>
+            ))}
+          </div>
+          <p className="mt-3 text-center text-sm text-brand-stone">
+            More locations are on the way.
+          </p>
+        </section>
 
-        {/* One rotating digital-sponsor slot — a different active sponsor can
-            come up on each visit. Renders nothing when none are active. */}
-        <DigitalSponsorSlot courseId={defaultCourse.id} />
+        <footer className="mt-2 text-center text-sm">
+          {/* Small umbrella-brand credit only — Holey Buckets is the identity. */}
+          <p className="font-semibold text-brand-stone">
+            {brand.umbrellaCredit}
+          </p>
+        </footer>
       </div>
-
-      <footer className="relative z-10 mt-12 text-sm">
-        {/* Small umbrella-brand credit only — Holey Buckets is the identity. */}
-        <p className="font-semibold text-brand-stone">{brand.umbrellaCredit}</p>
-      </footer>
     </main>
   );
 }
+
+/**
+ * The 30-second pitch of the game. Rule numbers must agree with
+ * src/lib/scoring.ts (chip into the bucket = −1, each penalty = +1) and with
+ * the fuller wording on /how-to-play.
+ */
+const HOW_TO_PLAY: { title: string; detail: string }[] = [
+  {
+    title: "Tee off toward the bucket",
+    detail:
+      "Chip your ball from the tee and keep swinging until it lands in the bucket. Every swing counts as a stroke.",
+  },
+  {
+    title: "Fewest strokes wins",
+    detail:
+      "Each hole has a par, most are par 3. Add up your strokes across the round — the lowest total takes it.",
+  },
+  {
+    title: "Bonuses and penalties",
+    detail:
+      "Chip one straight into the bucket and take −1 off that hole. Foliage, water, or out of bounds costs +1 each.",
+  },
+];

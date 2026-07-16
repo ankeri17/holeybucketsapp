@@ -40,7 +40,9 @@ npm run dev      # starts the dev server
 ```
 
 Open <http://localhost:3000>. You should see the landing page ("Holey Buckets",
-tagline "Backyard golf for everyone.", a "Start a round" button). Pages hot-reload
+tagline "Backyard golf for everyone.", a "Find your course" button — since
+2026-07-16 the landing is course-agnostic; "Start a round" lives on each course
+home at `/courses/<id>`). Pages hot-reload
 as you edit. Requires internet on first run: `npm install` hits the npm registry,
 and any dev/build compile fetches Google Fonts (see Traps, §5).
 
@@ -63,21 +65,27 @@ All four scripts, from `package.json` (there are no others):
 build, run `npx tsc --noEmit` — but the canonical gate is `npm run build`, and every PR
 must show it passing (see `holey-buckets-change-control`).
 
-## 3. Expected build output (known-good, 2026-07-02, commit aa4c527)
+## 3. Expected build output (known-good, 2026-07-16)
 
 A healthy `npm run build` ends with this route table (sizes drift a little between
-dependency or code changes — the ROUTE LIST and the ○/ƒ markers are what you diff):
+dependency or code changes — the ROUTE LIST and the ○/●/ƒ markers are what you diff):
 
 ```text
 Route (app)                              Size     First Load JS
-┌ ○ /                                    175 B          96.4 kB
+┌ ○ /                                    927 B          97.2 kB
 ├ ○ /_not-found                          873 B          88.4 kB
-├ ○ /course                              2.46 kB        98.7 kB
-├ ƒ /play/[roundId]                      2.81 kB         102 kB
-├ ƒ /play/[roundId]/results              4.5 kB          103 kB
-└ ○ /start                               5 kB            101 kB
+├ ƒ /admin/[key]                         4.3 kB          106 kB
+├ ○ /course                              2.96 kB         108 kB
+├ ● /courses/[courseId]                  1.37 kB         103 kB
+├   └ /courses/osceola
+├ ○ /how-to-play                         175 B          96.4 kB
+├ ○ /icon.svg                            0 B                0 B
+├ ƒ /play/[roundId]                      5.42 kB         107 kB
+├ ƒ /play/[roundId]/results              5.17 kB         110 kB
+└ ○ /start                               2.72 kB         107 kB
 
 ○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses getStaticProps)
 ƒ  (Dynamic)  server-rendered on demand
 ```
 
@@ -85,9 +93,11 @@ Healthy build checklist:
 
 1. `✓ Compiled successfully`
 2. `Linting and checking validity of types ...` passes silently (no `Failed to compile`).
-3. `✓ Generating static pages (6/6)` — exactly **6 routes**.
-4. Route table matches above: `/`, `/_not-found`, `/course`, `/start` static (○);
-   `/play/[roundId]` and `/play/[roundId]/results` dynamic (ƒ).
+3. `✓ Generating static pages (9/9)`.
+4. Route table matches above: `/`, `/_not-found`, `/course`, `/how-to-play`,
+   `/icon.svg`, `/start` static (○); `/courses/[courseId]` SSG (●, one page per
+   registered course); `/admin/[key]`, `/play/[roundId]`, and
+   `/play/[roundId]/results` dynamic (ƒ).
 5. Exit code 0.
 
 Deviations and what they mean:
@@ -96,7 +106,7 @@ Deviations and what they mean:
 |---|---|
 | `Failed to compile` + a `Type error:` block | TypeScript error — build runs `tsc` in strict mode. Fix the type error; there is no skip flag in use. |
 | `Failed to compile` + ESLint rule names | Lint failure under `next/core-web-vitals`. Reproduce faster with `npm run lint`. |
-| Fewer/more than 6 routes, or a ○/ƒ flip | You added/removed a page, or changed a page's rendering mode (e.g. removed `"use client"` or added server-only code). A ƒ→○ flip on the `/play` routes is a red flag — see Traps. |
+| Fewer/more than 10 routes, or a ○/●/ƒ flip | You added/removed a page, or changed a page's rendering mode (e.g. removed `"use client"` or added server-only code). A ƒ→○ flip on the `/play` routes is a red flag — see Traps. |
 | Failure mentioning fonts / `next/font` / fetch during "Creating an optimized production build" | Network to Google Fonts blocked — see Traps §5. |
 | First Load JS ballooning (e.g. jsPDF in the shared chunk) | jsPDF must stay a dynamic import (bundle-weight rule, PR #13). See `holey-buckets-architecture-contract`. |
 
@@ -162,15 +172,19 @@ Everything user-visible is client-side; the server writes nothing.
 Rounds are device-local and unrecoverable across devices — that is a known,
 deliberate MVP limitation, and the results page tells users so.
 
-## 7. Route map (all 6 routes)
+## 7. Route map (all 10 routes)
 
 | Route | Mode | Purpose |
 |---|---|---|
-| `/` | static | Landing. CTA "Start a round" → `/start`; secondary link → `/course`. |
+| `/` | static | Course-agnostic landing (since 2026-07-16): what Holey Buckets / bucket golf is, a 3-step how-to-play summary (full rules → `/how-to-play`), and a "Find your course" list with one card per registry course → `/courses/<id>`. |
+| `/courses/[courseId]` | SSG (●) | Per-course home — the screen a course card lands on: resume-round button, "Start a round" → `/start`, links to `/how-to-play` and `/course`, rotating sponsor slot. Prebuilt for every registered course via `generateStaticParams`; unknown ids 404. |
+| `/how-to-play` | static | The house rules as a short numbered list, with a sticky "Start a round" CTA. |
+| `/admin/[key]` | dynamic (ƒ) | Owner admin panel, gated by the `adminKey` in `src/config/sheets.ts`; a wrong key renders only "There's nothing at this address." |
 | `/course` | static | Course preview for the flagship course "The Gray Duck" (Osceola, WI), rendered entirely from `src/config/courses/osceola.ts`: hero, per-hole cards, difficulty pips, blank-PDF button. Hole data is placeholder until the owner's worksheet arrives. |
 | `/start` | static shell, client logic | Start a round: group name, players, format picker (only Stroke Play is available today), blank-PDF button. On start it creates the round in localStorage and routes to `/play/<id>`. Always uses `defaultCourse` — there is no course-selection UI yet. |
 | `/play/[roundId]` | dynamic (ƒ) | THE scoring screen. Loads the round from localStorage by URL id. Per-player: strokes stepper, "Chipped in −1" toggle (bucket chip = holing out by chipping into the bucket, −1 net), "Penalty +1" counter, and a "Balls used" stepper (only when the course sets `trackBalls` — a billing tally that never affects score). Live leaderboard; every tap saves immediately. |
 | `/play/[roundId]/results` | dynamic (ƒ) | Winner hero (handles ties), share-image buttons, final standings, scorecard grid, PDF download. |
+| `/icon.svg` | static | The favicon, served as a route by Next (`src/app/icon.svg`). |
 | `/_not-found` | static | Next.js default 404. |
 
 ("Net strokes" = strokes − 1 if bucket-chipped + 1 per penalty, floored at 0. Full rule
