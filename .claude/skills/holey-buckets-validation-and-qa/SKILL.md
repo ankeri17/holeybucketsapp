@@ -68,13 +68,18 @@ mandatory** for anything touching
 `src/lib/scoring.ts`, `src/lib/course.ts`, or `src/lib/types.ts`: run
 `scripts/scoring-smoke.mjs` (section 3) and see `ALL CASES PASS`.
 
-Expected tail of a good build (as of 2026-07-08 — 7 routes; ○ static, ƒ dynamic):
+Expected tail of a good build (as of 2026-07-16 — 10 routes; ○ static, ● SSG,
+ƒ dynamic):
 
 ```
 Route (app)                              Size     First Load JS
 ┌ ○ /                                    ...
 ├ ○ /_not-found                          ...
+├ ƒ /admin/[key]                         ...
 ├ ○ /course                              ...
+├ ● /courses/[courseId]                  ...
+├   └ /courses/osceola
+├ ○ /how-to-play                         ...
 ├ ○ /icon.svg                            ...
 ├ ƒ /play/[roundId]                      ...
 ├ ƒ /play/[roundId]/results              ...
@@ -86,7 +91,7 @@ finding, not noise.
 
 ## 2. The verification runbook (run top to bottom; skip steps only per the table in §2.1)
 
-1. **Build + tests.** From repo root: `npm run build` (must exit 0 with the 7-route
+1. **Build + tests.** From repo root: `npm run build` (must exit 0 with the 10-route
    table above) and `npm test` (all vitest suites pass).
    Trap: the build fetches Google Fonts at build time — a no-network build fails for
    reasons unrelated to your change (see holey-buckets-build-and-run).
@@ -209,7 +214,9 @@ three numbers into the PR body just like that.
 
 This reproduces the PR #14 bug scenario. Exact steps:
 
-1. `npm run dev` → http://localhost:3000 → "Start a round".
+1. `npm run dev` → http://localhost:3000/start. (Since 2026-07-16 the landing
+   page is course-agnostic — the tap path there is "Find your course" → a course
+   card → "Start a round" on the course home at `/courses/<id>`.)
 2. On `/start`: enter any group name; the form starts with 2 player slots — enter
    "Erin" and "Laura". Leave format as Stroke Play. Tap Start.
 3. On the scoring screen, **touch nothing** — just tap "Next hole →" through all 18
@@ -323,7 +330,7 @@ Re-verification commands (run from repo root) for anything that may drift:
 | Test suite + CI present | `ls .github/workflows; grep -E '"(test|vitest)"' package.json` → ci.yml; vitest + test script. `npm test` → all suites pass |
 | Smoke script still passes | `node .claude/skills/holey-buckets-validation-and-qa/scripts/scoring-smoke.mjs` |
 | tsc still a devDep | `node_modules/.bin/tsc --version` (5.9.x installed against `"typescript": "^5.5.3"` as of 2026-07-02) |
-| Route list unchanged | `npm run build` → 7-route table in §1 |
+| Route list unchanged | `npm run build` → 10-route table in §1 |
 | Scoring exports unchanged | `grep -n "export function" src/lib/scoring.ts` → netStrokes, getHoleScore, holesScored, playerTotal, playerToPar, standings, playerBalls, totalBalls, winners, joinNames, formatToPar |
 | Tie hero string | `grep -n "It's a tie" "src/app/play/[roundId]/results/page.tsx"` |
 | Share card top-5 + TIE label | `grep -n "slice(0, 5)\|\"TIE\"" src/lib/shareImage.ts` |

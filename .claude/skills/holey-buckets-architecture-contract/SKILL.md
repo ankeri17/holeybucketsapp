@@ -146,11 +146,14 @@ contract (e.g. async) is a Phase 2 design decision — route it through
 
 ## Invariant 4 — Client/static split and the SSR guard
 
-Verified against the build manifests (as of 2026-07-02, 6 routes):
+Verified against the build manifests (as of 2026-07-16, 10 routes — the table
+below shows the player-facing ones; `/how-to-play` and `/icon.svg` are static,
+`/admin/[key]` is dynamic):
 
 | Route | Rendering | Why |
 |---|---|---|
-| `/` (landing) | Static, server component | No state, no storage |
+| `/` (landing) | Static, server component | No state, no storage. Course-agnostic since 2026-07-16: explains the game and lists every registry course, linking each to `/courses/<id>` |
+| `/courses/[courseId]` (course home) | SSG, server component (`generateStaticParams` over the registry) | One prebuilt page per registered course — the per-course welcome screen with the "Start a round" CTA; unknown ids 404 |
 | `/course` | Static, server component | Rendered straight from course config at build time |
 | `/start` | Prerendered shell + `"use client"` page | Form state + writes to localStorage on submit |
 | `/play/[roundId]` | Dynamic, `"use client"` | Round exists ONLY in the phone's localStorage — the server can never render it |

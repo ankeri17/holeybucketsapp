@@ -224,9 +224,9 @@ Creating an optimized production build ...   ← webpack compile: syntax/import 
 ✓ Compiled successfully
 Linting and checking validity of types ...   ← ESLint (next/core-web-vitals) + tsc strict: most failures die here
 Collecting page data ...
-Generating static pages (6/6)                ← prerender: SSR-unsafe code (Case 4) dies here
+Generating static pages (9/9)                ← prerender: SSR-unsafe code (Case 4) dies here
 Finalizing page optimization ...
-[route table: 6 routes — /, /_not-found, /course, /start static; /play/[roundId] and .../results dynamic]
+[route table: 10 routes — /, /_not-found, /course, /how-to-play, /icon.svg, /start static; /courses/[courseId] SSG; /admin/[key] and the two /play routes dynamic]
 ```
 
 The three real failure classes for THIS repo:
@@ -352,7 +352,7 @@ Re-verify before trusting, if the repo has moved past aa4c527:
 | jspdf dynamic import | `grep -n "await import" src/lib/pdf.ts` |
 | Share fallback logic | `grep -n -B2 -A8 "canShare" src/lib/shareImage.ts` |
 | Netlify contract | `cat netlify.toml` |
-| Route list & build phases | `npm run build` (expect 6 routes; play routes dynamic) |
+| Route list & build phases | `npm run build` (expect 10 routes; play routes dynamic) |
 | Tests + CI present (since 2026-07-03) | `ls .github/workflows; grep -c test package.json` |
 | bookingCta still unused | `grep -rn "bookingCta" src/ --include="*.tsx"` (expect no matches) |
 | Live URL | `grep -n "siteUrl" src/config/branding.ts` |

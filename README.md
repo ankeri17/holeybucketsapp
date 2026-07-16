@@ -18,9 +18,11 @@ Hello Again Properties.)
 ## What's here so far
 
 The complete MVP play loop, all running on the player's phone with no backend:
-the landing page, a course preview, the start-a-round flow, the scoring screen
-(with chip-in bonus, penalty counter, and per-ball tracking), a live
-leaderboard, branded results with a shareable image, and PDF scorecards.
+a friendly landing page (what bucket golf is, how to play, and a "find your
+course" list of locations), a home screen per course, a course preview, the
+start-a-round flow, the scoring screen (with chip-in bonus, penalty counter,
+and per-ball tracking), a live leaderboard, branded results with a shareable
+image, and PDF scorecards.
 Sponsor placements are in too: a "Hole presented by" band on sponsored holes, a
 rotating sponsor slot on the home and results screens, and sponsor credits on
 the printed scorecards (sample sponsors for now).

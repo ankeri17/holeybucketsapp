@@ -178,7 +178,7 @@ Edge rules:
    - Rendered at 390px: which screens, what you saw (screenshots or described
      renders — observations, not claims).
    - `npm run build` passes (this runs lint + type-check; expect
-     "Linting and checking validity of types" then a 7-route output ending
+     "Linting and checking validity of types" then a 10-route output ending
      "Generating static pages").
    - Class-specific evidence from the §1 table (scoring spot-checks,
      old-round compatibility, PDF opened, etc.).
@@ -251,5 +251,5 @@ Re-verify before relying on volatile facts:
 | localStorage keys unchanged | `grep -n 'holeybuckets:' src/lib/storage.ts` |
 | Brand tokens flow (no drift) | `grep -n 'branding' tailwind.config.ts src/app/layout.tsx src/lib/shareImage.ts src/lib/pdf.ts` |
 | Netlify deploy config | `cat netlify.toml` (build `npm run build`, publish `.next`, plugin `@netlify/plugin-nextjs`) |
-| Build passes + 7 routes | `npm run build` (7 incl. `/icon.svg` since 2026-07-03) |
+| Build passes + 10 routes | `npm run build` (10 incl. `/courses/[courseId]` since 2026-07-16) |
 | Founder-editable comments intact | `head -30 src/config/branding.ts src/config/courses/osceola.ts src/config/sponsors/osceola.ts` |

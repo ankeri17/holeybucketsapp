@@ -75,15 +75,20 @@ campaign, not pre-existing rot.
    ```
    npm install && npm run build
    ```
-   **Expected**: build succeeds with exactly this 6-route table (verified 2026-07-02):
+   **Expected**: build succeeds with exactly this 10-route table (verified 2026-07-16):
    ```
    Route (app)                              Size     First Load JS
-   ┌ ○ /                                    175 B          96.4 kB
+   ┌ ○ /                                    927 B          97.2 kB
    ├ ○ /_not-found                          873 B          88.4 kB
-   ├ ○ /course                              2.46 kB        98.7 kB
-   ├ ƒ /play/[roundId]                      2.81 kB         102 kB
-   ├ ƒ /play/[roundId]/results              4.5 kB          103 kB
-   └ ○ /start                               5 kB            101 kB
+   ├ ƒ /admin/[key]                         4.3 kB          106 kB
+   ├ ○ /course                              2.96 kB         108 kB
+   ├ ● /courses/[courseId]                  1.37 kB         103 kB
+   ├   └ /courses/osceola
+   ├ ○ /how-to-play                         175 B          96.4 kB
+   ├ ○ /icon.svg                            0 B                0 B
+   ├ ƒ /play/[roundId]                      5.42 kB         107 kB
+   ├ ƒ /play/[roundId]/results              5.17 kB         110 kB
+   └ ○ /start                               2.72 kB         107 kB
    ```
    (Sizes may drift a little; the ROUTE LIST must match.)
    - **If the build fails on fonts / network**: Google Fonts are fetched at build time —
@@ -99,13 +104,15 @@ campaign, not pre-existing rot.
      holey-buckets-debugging-playbook; do not proceed.
 3. Confirm the deploy pipeline is live: open `https://holeybuckets.netlify.app` in a
    browser (the URL in `branding.siteUrl`).
-   **Expected**: landing page renders with the "Start a round" button.
+   **Expected**: the course-agnostic landing renders with the "Find your course"
+   button (since 2026-07-16); a course card leads to the course home at
+   `/courses/<id>`, which carries "Start a round".
    - **If it 404s or shows a stale build**: check the Netlify dashboard (off-repo) —
      the site deploys on every push to `main` via `netlify.toml`
      (build `npm run build`, publish `.next`, plugin `@netlify/plugin-nextjs`).
      Fix the pipeline before proceeding; holey-buckets-build-and-run owns the details.
 
-**GATE 0** ☐ build passes with the 6-route table ☐ smoke script `ALL CASES PASS`
+**GATE 0** ☐ build passes with the 10-route table ☐ smoke script `ALL CASES PASS`
 ☐ live site reachable and current. All green → Phase 1.
 
 ---
@@ -358,7 +365,7 @@ Re-verify before relying on volatile facts:
 
 | Fact | One-line check |
 |---|---|
-| Route table still 6 routes | `npm run build` (compare table in Phase 0) |
+| Route table still 10 routes | `npm run build` (compare table in Phase 0) |
 | Scoring engine healthy | `node .claude/skills/holey-buckets-validation-and-qa/scripts/scoring-smoke.mjs` |
 | osceola.ts still placeholder (Phase 1 not done) | `grep -n "PLACEHOLDER" src/config/courses/osceola.ts` |
 | Disclaimer still hardcoded | `grep -n "until the real course data" src/app/course/page.tsx` |
