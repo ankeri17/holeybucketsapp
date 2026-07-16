@@ -4,6 +4,7 @@ import {
   activeHoleSponsors,
   activeDigitalSponsors,
   holeSponsor,
+  sponsorHref,
   validateSponsors,
 } from "./sponsors";
 import type { Course, Sponsor } from "./types";
@@ -60,6 +61,46 @@ describe("active-sponsor filters (the lapsed kill switch)", () => {
     expect(holeSponsor(list, 2)?.id).toBe("h1");
     expect(holeSponsor(list, 1)).toBeUndefined(); // h2 lapsed
     expect(holeSponsor(list, 3)).toBeUndefined(); // never sold
+  });
+});
+
+describe("sponsorHref (absolute-URL normalization)", () => {
+  it("prepends https:// to a bare hostname so it isn't treated as a relative path", () => {
+    // The exact bug: "shophappens.com" as an href appended to /course.
+    expect(sponsorHref("shophappens.com")).toBe("https://shophappens.com");
+    expect(sponsorHref("ShopHappens.com")).toBe("https://ShopHappens.com");
+    expect(sponsorHref("www.shophappens.com/shop")).toBe(
+      "https://www.shophappens.com/shop",
+    );
+  });
+
+  it("leaves an already-absolute URL untouched", () => {
+    expect(sponsorHref("https://shophappens.com")).toBe(
+      "https://shophappens.com",
+    );
+    expect(sponsorHref("http://shophappens.com")).toBe(
+      "http://shophappens.com",
+    );
+    expect(sponsorHref("HTTPS://ShopHappens.com/x")).toBe(
+      "HTTPS://ShopHappens.com/x",
+    );
+  });
+
+  it("normalizes a protocol-relative //host to https", () => {
+    expect(sponsorHref("//shophappens.com")).toBe("https://shophappens.com");
+  });
+
+  it("trims surrounding whitespace before deciding", () => {
+    expect(sponsorHref("  shophappens.com  ")).toBe("https://shophappens.com");
+    expect(sponsorHref("  https://shophappens.com ")).toBe(
+      "https://shophappens.com",
+    );
+  });
+
+  it("returns undefined when there's no usable website", () => {
+    expect(sponsorHref(undefined)).toBeUndefined();
+    expect(sponsorHref("")).toBeUndefined();
+    expect(sponsorHref("   ")).toBeUndefined();
   });
 });
 
